@@ -84,6 +84,9 @@ for ( int i = 0; i < box_side; i++ ) {
     }
   }
 }
+vxtmp /= natoms;
+vytmp /= natoms;
+vztmp /= natoms;
 
 
 // adjust velocities
@@ -96,7 +99,7 @@ for (int i =0; i < natoms; i++) {
 // rescale to desired temperature
 // this is the "thermo" component in miniMD
 
-print_arr(vel, natoms);
+
 
 
 // big loop: time evolution
