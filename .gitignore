@@ -2,3 +2,4 @@ a.out
 argonmd.x
 .vscode*
 *.dSYM*
+out*
