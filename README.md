@@ -1,12 +1,20 @@
 ## Argonmd
 
 Training code: Molecular Dynamics  
-Lennard Jones liquid with velocity Verlet integrator
+Lennard Jones solid with velocity Verlet integrator
 
-Assumptions:
-- Argon chosen as model system
-  - fcc atomic lattice
+### Assumptions
+* Argon chosen as model system
+  - *fcc* atomic lattice
   - lattice constant 
-  - LJ parameters
-- 3D cubic box
+  - *LJ* parameters, with cut-off
+* 3D cubic box
   - defined as supercell of the unit cell of Argon
+* Solid state (at least to begin with)
+  - obtained using low temperature
+  - simplifies handling of neighbours
+* NVE ensemble
+
+### Credits
+* Some parts of the code were inspired by code in [Mantevo miniMD](https://github.com/Mantevo/miniMD)
+* Parameter values were taken by the `examples/UNITS` in [LAMMPS](https://github.com/lammps/lammps)
