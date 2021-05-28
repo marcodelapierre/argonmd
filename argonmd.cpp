@@ -1,9 +1,11 @@
 #include <iostream>
+#include <cmath>
 //#include <iomanip> // test only
 
 using namespace std;
 
 // service routines
+double get_temp( double*, const int, const double, const double);
 double random( int* ); // This one is taken from Mantevo/miniMD
 void print_arr( double*, int );
 
@@ -11,22 +13,20 @@ void print_arr( double*, int );
 int main() {
 //cout<<"Hello World!"<<endl;
 
-// define parameters
-// first three might become editable by cli arguments
+// define parameters - using LAMMPS "metal" convention
+//
+// first two might become editable by cli arguments
 const int box_side = 2; // no of unit cells per dimension
 const int nsteps = 1000000;
-const double temp = 50.; // K
-//
-const double eps = 0.34; // nm
-const double sigma = 120.; // K*k_B
-const double mass = 39.9; // amu
 const double step = 0.001; // ps
+const double temp_ini = 50.; // K
+// pressure unit is bar
+//
 // argon crystal structure (fcc)
-const int ndims = 3; // no of spatial dimensions // don't change this, some code implies a value of 3
-const double cellpar = 0.5256; // nm
-
-// derived parameters
+const int ndims = 3; // no of spatial dimensions // don't change this, some of the code below implies a value of 3
+const double cellpar = 5.256; // angstrom
 const int funits = 4;
+// derived structural parameters
 const int fd = funits * ndims;
 const int bfd = box_side * fd;
 const int bbfd = box_side * bfd;
@@ -37,8 +37,23 @@ const double unitpos[ fd ] = {
   0., 0.5*cellpar, 0.5*cellpar
 };
 const int natoms = funits * box_side * box_side * box_side;
+//
+// model parameters
+const double eps = 3.4; // angstrom
+const double sigma = 120.; // k_B*K
 
-// physical constants here
+// some physical constants here
+const double k_B = 8.617343e-05; // eV/K
+const double J_eV = 1.602177e-19; // this is q_e
+const double gram_amu = 1.660315e-24;
+const double dof_boltz = ( natoms * 3 - 3 ) * k_B;
+const double mvv2e = 1.036427e-04;
+const double t_scale = mvv2e / dof_boltz;
+const double mass_amu = 39.9; // amu
+const double mass = mass_amu * gram_amu; // gram
+
+
+
 
 
 // allocate arrays
@@ -88,7 +103,6 @@ vxtmp /= natoms;
 vytmp /= natoms;
 vztmp /= natoms;
 
-
 // adjust velocities
 // zero centre-of-mass motion
 for (int i =0; i < natoms; i++) {
@@ -96,10 +110,22 @@ for (int i =0; i < natoms; i++) {
   vel[ i * ndims + 1 ] -= vytmp;
   vel[ i * ndims + 2 ] -= vztmp;
 }
+
+// debug purposes
+print_arr( pos, natoms);
+print_arr( vel, natoms);
+
 // rescale to desired temperature
 // this is the "thermo" component in miniMD
-
-
+double temp;
+double t_factor;
+temp = get_temp(vel, natoms, mass, t_scale);
+t_factor = sqrt( temp_ini / temp );
+for (int i =0; i < natoms; i++) {
+  vel[ i * ndims + 0 ] *= t_factor;
+  vel[ i * ndims + 1 ] *= t_factor;
+  vel[ i * ndims + 2 ] *= t_factor;
+}
 
 
 // big loop: time evolution
@@ -127,6 +153,21 @@ return 0;
 
 
 
+
+double get_temp(double* vel, const int natoms, const double mass, const double t_scale)
+{
+  double t = 0.;
+  for (int i =0; i < natoms; i++) {
+    double vx = vel[ 3*i + 0 ];
+    double vy = vel[ 3*i + 1 ];
+    double vz = vel[ 3*i + 2 ];
+    t += (vx * vx + vy * vy + vz * vz);
+  }
+  cout << "Ave of vels : " << sqrt(t/3./natoms) << endl;
+  cout << "Temp?? : " << t * t_scale * mass << endl;
+  return t * t_scale * mass; // mass works out of the loop only because all atoms have same mass
+}
+
 // This is taken from Mantevo/miniMD
 /* Park/Miller RNG w/out MASKING, so as to be like f90s version */
 #define IA 16807
@@ -135,6 +176,7 @@ return 0;
 #define IQ 127773
 #define IR 2836
 #define MASK 123459876
+
 
 double random(int* idum)
 {
@@ -160,11 +202,10 @@ double random(int* idum)
 
 void print_arr(double* arr, const int natoms)
 {
-
-printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
-for ( int i = 0; i < natoms; i++){
-  printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3*i+0 ], arr[ 3*i+1 ], arr[ 3*i+2 ] );
-}
+  printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
+  for ( int i = 0; i < natoms; i++) {
+    printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3*i+0 ], arr[ 3*i+1 ], arr[ 3*i+2 ] );
+  }
 
 return;
 }
