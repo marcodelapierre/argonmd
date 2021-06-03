@@ -5,7 +5,10 @@
 using namespace std;
 
 // function headers
+void get_temp_ekin(double*, const int, const double, const double, const double, double&, double&);
 double get_temp( double*, const int, const double, const double);
+double get_ekin( double*, const int, const double, const double);
+double get_epot( double*, const int, const double, const double);
 double random( int* ); // This one is taken from Mantevo/miniMD
 void print_arr( double*, int );
 
@@ -17,7 +20,8 @@ int main() {
 //
 // first two might become editable by cli arguments
 const int box_side = 2; // no of unit cells per dimension
-const int nsteps = 1000000;
+const int nsteps = 200000;
+const int nthermo = 1000; // print thermo info every these steps
 const double step = 0.001; // ps
 const double temp_ini = 10.; // K
 // pressure unit is bar
@@ -44,20 +48,22 @@ const double N_av = 6.02214129e23; // mol-1
 const double J_eV = 1.602177e-19; // this is q_e
 //
 // model parameters
+const double mass = 39.95; // gram/mol (also amu)
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
 const double sigma = 3.504; // angstrom
-const double mass = 39.95; // gram/mol (also amu)
+const double cut_fac = 2.5; // adimensional, multiplies sigma
+const double skin_fac = 0.3; // adimensional, multiplies sigma
 //
 const double N_dof = ( natoms * 3 - 3 );
-const double mvv2e = 1.036427e-04; // this is to convert from metal to SI units
-const double t_scale = mvv2e / ( N_dof * k_B );
+const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
+const double temp_scale = mvv2e / ( N_dof * k_B );
 
 // allocate arrays
 //
 double* pos = new double [ natoms * ndims ];
 double* vel = new double [ natoms * ndims ];
-double* acc = new double [ natoms * ndims ];
+double* force = new double [ natoms * ndims ];
 
 // define structure AND 
 // initialise velocities
@@ -107,27 +113,49 @@ for (int i =0; i < natoms; i++) {
   vel[ i * ndims + 2 ] -= vztmp;
 }
 // rescale to desired temperature
-double temp;
-double t_factor;
-temp = get_temp(vel, natoms, mass, t_scale);
+double temp, t_factor;
+double ekin, epot, etot;
+// set debug prints
+int debug_arr = 0;
+int debug_info = 1;
+get_temp_ekin(vel, natoms, mass, temp_scale, mvv2e, temp, ekin);
 t_factor = sqrt( temp_ini / temp );
 for (int i =0; i < natoms; i++) {
   vel[ i * ndims + 0 ] *= t_factor;
   vel[ i * ndims + 1 ] *= t_factor;
   vel[ i * ndims + 2 ] *= t_factor;
 }
+ekin *= temp_ini / temp; // order matters for these two: ekin, then temp
+temp *= temp_ini / temp; // order matters for these two: ekin, then temp
 
-// debug purposes
-print_arr( pos, natoms);
-print_arr( vel, natoms);
-cout << "N_atoms : " << natoms << endl;
-cout << "Temp : " << temp << endl;
+// build neighbour list
+// NOTE: in this first implementation, this is never updated; should work at low temperatures, where atoms are likely to stick around their starting positions
 
+//epot = 
+//etot = ekin + epot;
+
+
+
+
+// get debug prints
+if ( debug_arr ) {
+  print_arr( pos, natoms);
+  print_arr( vel, natoms);
+}
+if ( debug_info ) {
+  cout << "Cell_par[Ang] : " << cellpar << endl;
+  cout << "Box_side[Ang] : " << box_side * cellpar << endl;
+  cout << "N_atoms : " << natoms << endl;
+  cout << "Temp[K] : " << temp << endl;
+  cout << "E_kin[eV] : " << ekin << endl;
+  //cout << "E_pot : " << epot << endl;
+  //cout << "E_tot : " << etot << endl;
+}
 
 
 // big loop: time evolution
 
-// compute neighbour lists when required
+
 // compute forces
 
 // integrate
@@ -141,7 +169,7 @@ cout << "Temp : " << temp << endl;
 
 
 // deallocate arrays
-delete [] acc;
+delete [] force;
 delete [] vel;
 delete [] pos;
 
@@ -151,7 +179,26 @@ return 0;
 
 
 
-double get_temp(double* vel, const int natoms, const double mass, const double t_scale)
+void get_temp_ekin(double* vel, const int natoms, const double mass, 
+                   const double temp_scale, const double ekin_scale, 
+                   double& temp, double& ekin)
+{
+  double tmp = 0.;
+  for (int i =0; i < natoms; i++) {
+    double vx = vel[ 3*i + 0 ];
+    double vy = vel[ 3*i + 1 ];
+    double vz = vel[ 3*i + 2 ];
+    tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
+  }
+  //cout << "Ave vv : " << tmp / natoms << endl;  // debug
+
+  temp = tmp * temp_scale;
+  ekin = tmp * ekin_scale * 0.5;
+  return;
+}
+
+
+double get_temp(double* vel, const int natoms, const double mass, const double temp_scale)
 {
   double t = 0.;
   for (int i =0; i < natoms; i++) {
@@ -160,12 +207,25 @@ double get_temp(double* vel, const int natoms, const double mass, const double t
     double vz = vel[ 3*i + 2 ];
     t += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
   }
-  // debug
-  //cout << "N_atoms : " << natoms << endl;
-  //cout << "Ave vv : " << t / natoms << endl;
-  //cout << "Temp : " << t * t_scale << endl;
-  return t * t_scale;
+  //cout << "Ave vv : " << t / natoms << endl;  // debug
+
+  return t * temp_scale;
 }
+
+
+double get_ekin(double* vel, const int natoms, const double mass, const double ekin_scale)
+{
+  double ek = 0.;
+  for (int i =0; i < natoms; i++) {
+    double vx = vel[ 3*i + 0 ];
+    double vy = vel[ 3*i + 1 ];
+    double vz = vel[ 3*i + 2 ];
+    ek += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
+  }
+
+  return ek * ekin_scale * 0.5;
+}
+
 
 // This is taken from Mantevo/miniMD
 /* Park/Miller RNG w/out MASKING, so as to be like f90s version */
@@ -175,7 +235,6 @@ double get_temp(double* vel, const int natoms, const double mass, const double t
 #define IQ 127773
 #define IR 2836
 #define MASK 123459876
-
 
 double random(int* idum)
 {
