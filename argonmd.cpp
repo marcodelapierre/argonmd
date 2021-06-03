@@ -6,6 +6,7 @@ using namespace std;
 
 // function headers
 void get_temp_ekin(double*, const int, const double, const double, const double, double&, double& );
+void get_neigh( double*, const int, const double, const int, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
 double random( int* ); // This one is taken from Mantevo/miniMD
 void print_arr( double*, int );
@@ -17,7 +18,7 @@ int main() {
 // define parameters - using LAMMPS "metal" convention
 //
 // first two might become editable by cli arguments
-const int box_side = 2; // no of unit cells per dimension
+const int box_side = 4; // no of unit cells per dimension
 const int nsteps = 200000;
 const int nthermo = 1000; // print thermo info every these steps
 const double step = 0.001; // ps
@@ -27,6 +28,7 @@ const double temp_ini = 10.; // K
 // argon crystal structure (fcc)
 const int ndims = 3; // no of spatial dimensions // don't change this, some of the code below implies a value of 3
 const double cellpar = 5.256; // angstrom
+const double boxlen = cellpar * box_side;
 const int funits = 4;
 // derived structural parameters
 const int fd = funits * ndims;
@@ -52,6 +54,11 @@ const double eps = eps_kB * k_B; // eV
 const double sigma = 3.504; // angstrom
 const double cut_fac = 2.5; // adimensional, multiplies sigma
 const double skin_fac = 0.3; // adimensional, multiplies sigma
+const double cut = cut_fac * sigma;
+const double cutskin = cut + skin_fac * sigma;
+const double cutsq = cut * cut;
+const double cutskinsq = cutskin * cutskin;
+const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
 const double N_dof = ( natoms * 3 - 3 );
 const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
@@ -59,9 +66,11 @@ const double temp_scale = mvv2e / ( N_dof * k_B );
 
 // allocate arrays
 //
+int* numneigh = new int [ natoms ];
+int* neigh = new int [ natoms * maxneigh ];
 double* pos = new double [ natoms * ndims ];
 double* vel = new double [ natoms * ndims ];
-double* force = new double [ natoms * ndims ];
+double* forc = new double [ natoms * ndims ];
 
 // define structure AND 
 // initialise velocities
@@ -84,12 +93,12 @@ for ( int i = 0; i < box_side; i++ ) {
 
         // velocities
         seed = idx;
-        for(int m = 0; m < 5; m++) random(&seed);
-        vel[ idx + 0 ] = random(&seed);
-        for(int m = 0; m < 5; m++) random(&seed);
-        vel[ idx + 1 ] = random(&seed);
-        for(int m = 0; m < 5; m++) random(&seed);
-        vel[ idx + 2 ] = random(&seed);
+        for ( int m = 0; m < 5; m++ ) random( &seed );
+        vel[ idx + 0 ] = random( &seed );
+        for ( int m = 0; m < 5; m++ ) random( &seed );
+        vel[ idx + 1 ] = random( &seed );
+        for ( int m = 0; m < 5; m++ ) random( &seed );
+        vel[ idx + 2 ] = random( &seed );
 
         vxtmp += vel[ idx + 0 ];
         vytmp += vel[ idx + 1 ];
@@ -105,7 +114,7 @@ vztmp /= natoms;
 
 // adjust velocities
 // zero centre-of-mass motion
-for (int i =0; i < natoms; i++) {
+for (int i = 0; i < natoms; i++) {
   vel[ i * ndims + 0 ] -= vxtmp;
   vel[ i * ndims + 1 ] -= vytmp;
   vel[ i * ndims + 2 ] -= vztmp;
@@ -116,9 +125,9 @@ double ekin, epot, etot;
 // set debug prints
 int debug_arr = 0;
 int debug_info = 1;
-get_temp_ekin(vel, natoms, mass, temp_scale, mvv2e, temp, ekin);
+get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
 t_factor = sqrt( temp_ini / temp );
-for (int i =0; i < natoms; i++) {
+for (int i = 0; i < natoms; i++) {
   vel[ i * ndims + 0 ] *= t_factor;
   vel[ i * ndims + 1 ] *= t_factor;
   vel[ i * ndims + 2 ] *= t_factor;
@@ -126,12 +135,12 @@ for (int i =0; i < natoms; i++) {
 ekin *= temp_ini / temp; // order matters for these two: ekin, then temp
 temp *= temp_ini / temp; // order matters for these two: ekin, then temp
 
-// build neighbour list
-// NOTE: in this first implementation, this is never updated; 
-// should work at low temperatures, where atoms are likely to stick around their starting positions
+// build (full) neighbour list
+get_neigh( pos, natoms, boxlen, ndims, cutskinsq, maxneigh, numneigh, neigh );
 
-//epot = 
-//etot = ekin + epot;
+// compute initial potential energy
+//epot 
+//etot 
 
 
 
@@ -143,13 +152,16 @@ if ( debug_arr ) {
 }
 if ( debug_info ) {
   cout << "Cell_par[Ang] : " << cellpar << endl;
-  cout << "Box_side[Ang] : " << box_side * cellpar << endl;
+  cout << "Box_len[Ang] : " << boxlen << endl;
   cout << "N_atoms : " << natoms << endl;
   cout << "Temp[K] : " << temp << endl;
   cout << "E_kin[eV] : " << ekin << endl;
   //cout << "E_pot : " << epot << endl;
   //cout << "E_tot : " << etot << endl;
 }
+
+
+
 
 
 // big loop: time evolution
@@ -167,10 +179,14 @@ if ( debug_info ) {
 
 
 
+
+
 // deallocate arrays
-delete [] force;
+delete [] forc;
 delete [] vel;
 delete [] pos;
+delete [] neigh;
+delete [] numneigh;
 
 return 0;
 }
@@ -183,7 +199,7 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
                    double& temp, double& ekin)
 {
   double tmp = 0.;
-  for (int i =0; i < natoms; i++) {
+  for (int i = 0; i < natoms; i++) {
     double vx = vel[ 3*i + 0 ];
     double vy = vel[ 3*i + 1 ];
     double vz = vel[ 3*i + 2 ];
@@ -193,6 +209,51 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
 
   temp = tmp * temp_scale;
   ekin = tmp * ekin_scale * 0.5;
+  return;
+}
+
+
+// NOTE: in this first implementation, this is never updated; 
+// should work at low temperatures, where atoms are likely to stick around their starting positions
+void get_neigh( double* pos, const int natoms, const double boxlen, const int ndims, 
+                const double cutskinsq, const int maxneigh, 
+                int* numneigh, int* neigh ) {
+
+  const double boxhalf = boxlen * 0.5;
+  for (int i = 0; i < natoms; i++) {
+    numneigh[ i ] = 0;
+  }
+  // int tot_nn = 0;
+  // int max_nn = 0;
+  // int min_nn = 1000000;
+  for (int i = 0; i < natoms; i++) {
+    int num_nn = 0;
+    for (int j = 0; j < natoms; j++) {
+      if ( i == j ) continue;
+      double dx = pos[ i * ndims + 0 ] - pos[ j * ndims + 0 ];
+      if ( dx > boxhalf ) { dx -= boxlen; }
+      if ( dx < - boxhalf ) { dx += boxlen; }
+      double dy = pos[ i * ndims + 1 ] - pos[ j * ndims + 1 ];
+      if ( dy > boxhalf ) { dy -= boxlen; }
+      if ( dy < - boxhalf ) { dy += boxlen; }
+      double dz = pos[ i * ndims + 2 ] - pos[ j * ndims + 2 ];
+      if ( dz > boxhalf ) { dz -= boxlen; }
+      if ( dz < - boxhalf ) { dz += boxlen; }
+      double rsq = dx * dx + dy * dy + dz * dz;
+      if ( rsq <= cutskinsq ) {
+        neigh[ i * maxneigh + num_nn++ ] = j;
+      } //else {
+        //cout << i << ' ' << j << ' ' << pos[ i * ndims + 0 ] << ' ' << pos[ i * ndims + 1 ] << ' ' << pos[ i * ndims + 2 ] << ' ' << pos[ j * ndims + 0 ] << ' ' << pos[ j * ndims + 1 ] << ' ' << pos[ j * ndims + 2 ] << endl;
+      //} // debug
+    }
+    numneigh[ i ] = num_nn;
+    // tot_nn += num_nn;
+    // max_nn = max( max_nn, num_nn );
+    // min_nn = min( min_nn, num_nn);
+  }
+  // cout << "tot_nn = " << tot_nn << endl;
+  // cout << "max_nn = " << max_nn << endl;
+  // cout << "min_nn = " << min_nn << endl;
   return;
 }
 
