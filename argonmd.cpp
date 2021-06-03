@@ -5,10 +5,8 @@
 using namespace std;
 
 // function headers
-void get_temp_ekin(double*, const int, const double, const double, const double, double&, double&);
-double get_temp( double*, const int, const double, const double);
-double get_ekin( double*, const int, const double, const double);
-double get_epot( double*, const int, const double, const double);
+void get_temp_ekin(double*, const int, const double, const double, const double, double&, double& );
+double get_epot( double*, const int, const double, const double );
 double random( int* ); // This one is taken from Mantevo/miniMD
 void print_arr( double*, int );
 
@@ -129,7 +127,8 @@ ekin *= temp_ini / temp; // order matters for these two: ekin, then temp
 temp *= temp_ini / temp; // order matters for these two: ekin, then temp
 
 // build neighbour list
-// NOTE: in this first implementation, this is never updated; should work at low temperatures, where atoms are likely to stick around their starting positions
+// NOTE: in this first implementation, this is never updated; 
+// should work at low temperatures, where atoms are likely to stick around their starting positions
 
 //epot = 
 //etot = ekin + epot;
@@ -195,35 +194,6 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
   temp = tmp * temp_scale;
   ekin = tmp * ekin_scale * 0.5;
   return;
-}
-
-
-double get_temp(double* vel, const int natoms, const double mass, const double temp_scale)
-{
-  double t = 0.;
-  for (int i =0; i < natoms; i++) {
-    double vx = vel[ 3*i + 0 ];
-    double vy = vel[ 3*i + 1 ];
-    double vz = vel[ 3*i + 2 ];
-    t += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
-  }
-  //cout << "Ave vv : " << t / natoms << endl;  // debug
-
-  return t * temp_scale;
-}
-
-
-double get_ekin(double* vel, const int natoms, const double mass, const double ekin_scale)
-{
-  double ek = 0.;
-  for (int i =0; i < natoms; i++) {
-    double vx = vel[ 3*i + 0 ];
-    double vy = vel[ 3*i + 1 ];
-    double vz = vel[ 3*i + 2 ];
-    ek += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
-  }
-
-  return ek * ekin_scale * 0.5;
 }
 
 
