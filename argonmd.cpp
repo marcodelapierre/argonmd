@@ -4,8 +4,8 @@
 
 using namespace std;
 
-// service routines
-double get_temp( double*, const int, const double);
+// function headers
+double get_temp( double*, const int, const double, const double);
 double random( int* ); // This one is taken from Mantevo/miniMD
 void print_arr( double*, int );
 
@@ -51,15 +51,13 @@ const double mass = 39.95; // gram/mol (also amu)
 //
 const double N_dof = ( natoms * 3 - 3 );
 const double mvv2e = 1.036427e-04; // this is to convert from metal to SI units
-const double t_scale = mvv2e * mass / ( N_dof * k_B );  // mass can be here only because all atoms have the same mass
-
+const double t_scale = mvv2e / ( N_dof * k_B );
 
 // allocate arrays
 //
 double* pos = new double [ natoms * ndims ];
 double* vel = new double [ natoms * ndims ];
 double* acc = new double [ natoms * ndims ];
-
 
 // define structure AND 
 // initialise velocities
@@ -108,11 +106,10 @@ for (int i =0; i < natoms; i++) {
   vel[ i * ndims + 1 ] -= vytmp;
   vel[ i * ndims + 2 ] -= vztmp;
 }
-
 // rescale to desired temperature
 double temp;
 double t_factor;
-temp = get_temp(vel, natoms, t_scale);
+temp = get_temp(vel, natoms, mass, t_scale);
 t_factor = sqrt( temp_ini / temp );
 for (int i =0; i < natoms; i++) {
   vel[ i * ndims + 0 ] *= t_factor;
@@ -123,20 +120,23 @@ for (int i =0; i < natoms; i++) {
 // debug purposes
 print_arr( pos, natoms);
 print_arr( vel, natoms);
+cout << "N_atoms : " << natoms << endl;
+cout << "Temp : " << temp << endl;
+
 
 
 // big loop: time evolution
 
+// compute neighbour lists when required
 // compute forces
 
 // integrate
 
 // update velocities
 
-
-
-
 // compute and print output when required
+
+
 
 
 
@@ -151,19 +151,19 @@ return 0;
 
 
 
-double get_temp(double* vel, const int natoms, const double t_scale)
+double get_temp(double* vel, const int natoms, const double mass, const double t_scale)
 {
   double t = 0.;
   for (int i =0; i < natoms; i++) {
     double vx = vel[ 3*i + 0 ];
     double vy = vel[ 3*i + 1 ];
     double vz = vel[ 3*i + 2 ];
-    t += (vx * vx + vy * vy + vz * vz);
+    t += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
   }
   // debug
   //cout << "N_atoms : " << natoms << endl;
   //cout << "Ave vv : " << t / natoms << endl;
-  //cout << "Temp? : " << t * t_scale << endl;
+  //cout << "Temp : " << t * t_scale << endl;
   return t * t_scale;
 }
 
