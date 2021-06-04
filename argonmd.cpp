@@ -5,49 +5,53 @@
 using namespace std;
 
 // function headers
+void setup_struc_vel( const int, const int, const int, const double, const double*, const int, double*, double* );
 void get_temp_ekin(double*, const int, const double, const double, const double, double&, double& );
+void rescale_temp( double*, const int, const int, const double, double&, double& );
 void get_neigh( double*, const int, const double, const int, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
-double random( int* ); // This one is taken from Mantevo/miniMD
+double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( double*, int );
+void print_info ( const double, const double, const int, const double, const double, const double );
+
+
 
 
 int main() {
 //cout<<"Hello World!"<<endl;
 
-// define parameters - using LAMMPS "metal" convention
+// Define parameters - using LAMMPS "metal" units convention
 //
-// first two might become editable by cli arguments
+// Input parameters - might become editable by input
 const int box_side = 4; // no of unit cells per dimension
 const int nsteps = 200000;
 const int nthermo = 1000; // print thermo info every these steps
-const double step = 0.001; // ps
 const double temp_ini = 10.; // K
 // pressure unit is bar
 //
-// argon crystal structure (fcc)
+// Other parameters from here on
+//
+const double step = 0.001; // ps
+//
+// Crystal structure for Argon (fcc)
 const int ndims = 3; // no of spatial dimensions // don't change this, some of the code below implies a value of 3
 const double cellpar = 5.256; // angstrom
 const double boxlen = cellpar * box_side;
 const int funits = 4;
-// derived structural parameters
-const int fd = funits * ndims;
-const int bfd = box_side * fd;
-const int bbfd = box_side * bfd;
-const double unitpos[ fd ] = {
+const int natoms = funits * box_side * box_side * box_side;
+const double unitpos[ funits * ndims ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
   0.5*cellpar, 0., 0.5*cellpar,
   0., 0.5*cellpar, 0.5*cellpar
 };
-const int natoms = funits * box_side * box_side * box_side;
 //
-// some physical constants here
+// Some physical constants here
 const double k_B = 8.617343e-05; // eV/K
 const double N_av = 6.02214129e23; // mol-1
 const double J_eV = 1.602177e-19; // this is q_e
 //
-// model parameters
+// Model parameters
 const double mass = 39.95; // gram/mol (also amu)
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
@@ -64,101 +68,41 @@ const double N_dof = ( natoms * 3 - 3 );
 const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
 const double temp_scale = mvv2e / ( N_dof * k_B );
 
-// allocate arrays
-//
+
+// Allocate arrays
 int* numneigh = new int [ natoms ];
 int* neigh = new int [ natoms * maxneigh ];
 double* pos = new double [ natoms * ndims ];
 double* vel = new double [ natoms * ndims ];
 double* forc = new double [ natoms * ndims ];
 
-// define structure AND 
-// initialise velocities
-int idx;
-int seed;
-double vxtmp = 0.;
-double vytmp = 0.;
-double vztmp = 0.;
-for ( int i = 0; i < box_side; i++ ) {
-  for ( int j = 0; j < box_side; j++ ) {
-    for ( int k = 0; k < box_side; k++ ) {
-      for ( int l = 0; l < funits; l++ ) {
-        idx = i * bbfd + j * bfd + k * fd + l * ndims;
-        // positions
-        pos[ idx + 0 ] = cellpar*i + unitpos[ l * ndims + 0 ];
-        pos[ idx + 1 ] = cellpar*j + unitpos[ l * ndims + 1 ];
-        pos[ idx + 2 ] = cellpar*k + unitpos[ l * ndims + 2 ];
-        //cout << left << setw(8) << pos[idx+0] << setw(8) << pos[idx+1] << setw(8) << pos[idx+2] << endl ; // test only
-        //cout << idx << endl; // test only
+// Define simulation variables
+double temp, ekin, epot, etot;
+int istep = 0;
 
-        // velocities
-        seed = idx;
-        for ( int m = 0; m < 5; m++ ) random( &seed );
-        vel[ idx + 0 ] = random( &seed );
-        for ( int m = 0; m < 5; m++ ) random( &seed );
-        vel[ idx + 1 ] = random( &seed );
-        for ( int m = 0; m < 5; m++ ) random( &seed );
-        vel[ idx + 2 ] = random( &seed );
 
-        vxtmp += vel[ idx + 0 ];
-        vytmp += vel[ idx + 1 ];
-        vztmp += vel[ idx + 2 ];
-      }
-      //cout << endl; // test only
-    }
-  }
-}
-vxtmp /= natoms;
-vytmp /= natoms;
-vztmp /= natoms;
+// Define structure and initialise velocities
+setup_struc_vel( ndims, funits, box_side, cellpar, unitpos, natoms, pos, vel );
 
-// adjust velocities
-// zero centre-of-mass motion
-for (int i = 0; i < natoms; i++) {
-  vel[ i * ndims + 0 ] -= vxtmp;
-  vel[ i * ndims + 1 ] -= vytmp;
-  vel[ i * ndims + 2 ] -= vztmp;
-}
-// rescale to desired temperature
-double temp, t_factor;
-double ekin, epot, etot;
-// set debug prints
-int debug_arr = 0;
-int debug_info = 1;
+// Rescale to desired temperature
 get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
-t_factor = sqrt( temp_ini / temp );
-for (int i = 0; i < natoms; i++) {
-  vel[ i * ndims + 0 ] *= t_factor;
-  vel[ i * ndims + 1 ] *= t_factor;
-  vel[ i * ndims + 2 ] *= t_factor;
-}
-ekin *= temp_ini / temp; // order matters for these two: ekin, then temp
-temp *= temp_ini / temp; // order matters for these two: ekin, then temp
+rescale_temp( vel, natoms, ndims, temp_ini, temp, ekin );
 
-// build (full) neighbour list
+// Build (full) neighbour list
 get_neigh( pos, natoms, boxlen, ndims, cutskinsq, maxneigh, numneigh, neigh );
 
-// compute initial potential energy
+// Compute initial potential energy
 //epot 
-//etot 
 
 
 
 
-// get debug prints
-if ( debug_arr ) {
-  print_arr( pos, natoms);
-  print_arr( vel, natoms);
-}
-if ( debug_info ) {
-  cout << "Cell_par[Ang] : " << cellpar << endl;
-  cout << "Box_len[Ang] : " << boxlen << endl;
-  cout << "N_atoms : " << natoms << endl;
-  cout << "Temp[K] : " << temp << endl;
-  cout << "E_kin[eV] : " << ekin << endl;
-  //cout << "E_pot : " << epot << endl;
-  //cout << "E_tot : " << etot << endl;
-}
+
+// Get debug prints
+if ( 1 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
+if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot  ); }
+
+
 
 
 
@@ -194,9 +138,67 @@ return 0;
 
 
 
+// Define structure and initialise velocities
+void setup_struc_vel( const int ndims, const int funits, const int box_side, const double cellpar, const double* unitpos, const int natoms, double* pos, double* vel ) 
+{
+  const int fd = funits * ndims;
+  const int bfd = box_side * fd;
+  const int bbfd = box_side * bfd;
+
+  int idx;
+  int seed;
+  double vxtmp = 0.;
+  double vytmp = 0.;
+  double vztmp = 0.;
+  for ( int i = 0; i < box_side; i++ ) {
+    for ( int j = 0; j < box_side; j++ ) {
+      for ( int k = 0; k < box_side; k++ ) {
+        for ( int l = 0; l < funits; l++ ) {
+          idx = i * bbfd + j * bfd + k * fd + l * ndims;
+          // positions
+          pos[ idx + 0 ] = cellpar*i + unitpos[ l * ndims + 0 ];
+          pos[ idx + 1 ] = cellpar*j + unitpos[ l * ndims + 1 ];
+          pos[ idx + 2 ] = cellpar*k + unitpos[ l * ndims + 2 ];
+          //cout << left << setw(8) << pos[idx+0] << setw(8) << pos[idx+1] << setw(8) << pos[idx+2] << endl ; // test only
+          //cout << idx << endl; // test only
+  
+          // velocities
+          seed = idx;
+          for ( int m = 0; m < 5; m++ ) random( &seed );
+          vel[ idx + 0 ] = random( &seed );
+          for ( int m = 0; m < 5; m++ ) random( &seed );
+          vel[ idx + 1 ] = random( &seed );
+          for ( int m = 0; m < 5; m++ ) random( &seed );
+          vel[ idx + 2 ] = random( &seed );
+  
+          vxtmp += vel[ idx + 0 ];
+          vytmp += vel[ idx + 1 ];
+          vztmp += vel[ idx + 2 ];
+        }
+        //cout << endl; // test only
+      }
+    }
+  }
+  vxtmp /= natoms;
+  vytmp /= natoms;
+  vztmp /= natoms;
+
+  // Adjust velocities
+  // Zero centre-of-mass motion
+  for (int i = 0; i < natoms; i++) {
+    vel[ i * ndims + 0 ] -= vxtmp;
+    vel[ i * ndims + 1 ] -= vytmp;
+    vel[ i * ndims + 2 ] -= vztmp;
+  }
+  
+  return;
+}
+
+
+// Compute temperature and kinetic energy
 void get_temp_ekin(double* vel, const int natoms, const double mass, 
                    const double temp_scale, const double ekin_scale, 
-                   double& temp, double& ekin)
+                   double& temp, double& ekin) 
 {
   double tmp = 0.;
   for (int i = 0; i < natoms; i++) {
@@ -213,16 +215,37 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
 }
 
 
+// Rescale to desired temperature
+void rescale_temp( double* vel, const int natoms, const int ndims, const double temp_ini, double& temp, double& ekin ) 
+{
+  double t_factor, t_factor_sqrt;
+  t_factor = temp_ini / temp;
+  t_factor_sqrt = sqrt( t_factor );
+  
+  for (int i = 0; i < natoms; i++) {
+    vel[ i * ndims + 0 ] *= t_factor_sqrt;
+    vel[ i * ndims + 1 ] *= t_factor_sqrt;
+    vel[ i * ndims + 2 ] *= t_factor_sqrt;
+  }
+  temp *= t_factor;
+  ekin *= t_factor;
+  
+  return;
+}
+
+
+// Build full neighbour list
 // NOTE: in this first implementation, this is never updated; 
 // should work at low temperatures, where atoms are likely to stick around their starting positions
 void get_neigh( double* pos, const int natoms, const double boxlen, const int ndims, 
                 const double cutskinsq, const int maxneigh, 
-                int* numneigh, int* neigh ) {
-
+                int* numneigh, int* neigh ) 
+{
   const double boxhalf = boxlen * 0.5;
   for (int i = 0; i < natoms; i++) {
     numneigh[ i ] = 0;
   }
+
   // int tot_nn = 0;
   // int max_nn = 0;
   // int min_nn = 1000000;
@@ -251,6 +274,7 @@ void get_neigh( double* pos, const int natoms, const double boxlen, const int nd
     // max_nn = max( max_nn, num_nn );
     // min_nn = min( min_nn, num_nn);
   }
+
   // cout << "tot_nn = " << tot_nn << endl;
   // cout << "max_nn = " << max_nn << endl;
   // cout << "min_nn = " << min_nn << endl;
@@ -267,7 +291,7 @@ void get_neigh( double* pos, const int natoms, const double boxlen, const int nd
 #define IR 2836
 #define MASK 123459876
 
-double random(int* idum)
+double random(int* idum) 
 {
   int k;
   double ans;
@@ -289,7 +313,8 @@ double random(int* idum)
 #undef MASK
 
 
-void print_arr(double* arr, const int natoms)
+// Generic function to print arrays
+void print_arr(double* arr, const int natoms) 
 {
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
   for ( int i = 0; i < natoms; i++) {
@@ -297,4 +322,19 @@ void print_arr(double* arr, const int natoms)
   }
 
 return;
+}
+
+
+// Print info on simulation model
+void print_info ( const double cellpar, const double boxlen, const int natoms, const double temp, const double ekin, const double epot ) 
+{
+  cout << "Cell_par[Ang] : " << cellpar << endl;
+  cout << "Box_len[Ang] : " << boxlen << endl;
+  cout << "N_atoms : " << natoms << endl;
+  cout << "Temp[K] : " << temp << endl;
+  cout << "E_kin[eV] : " << ekin << endl;
+  cout << "E_pot : " << epot << endl;
+  cout << "E_tot : " << ekin + epot << endl;
+
+  return;
 }
