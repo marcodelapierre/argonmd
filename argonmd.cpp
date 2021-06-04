@@ -5,10 +5,10 @@
 using namespace std;
 
 // function headers
-void setup_struc_vel( const int, const int, const int, const double, const double*, const int, double*, double* );
+void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double* );
 void get_temp_ekin(double*, const int, const double, const double, const double, double&, double& );
-void rescale_temp( double*, const int, const int, const double, double&, double& );
-void get_neigh( double*, const int, const double, const int, const double, const int, int*, int* );
+void rescale_temp( double*, const int, const double, double&, double& );
+void get_neigh( double*, const int, const double, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( double*, int );
@@ -34,12 +34,13 @@ const double temp_ini = 10.; // K
 const double step = 0.001; // ps
 //
 // Crystal structure for Argon (fcc)
-const int ndims = 3; // no of spatial dimensions // don't change this, some of the code below implies a value of 3
+// Note that fcc implies 3D PBC
+const int ndims = 3; // no of periodic dimensions // beware: some of the code below implies 3D PBC
 const double cellpar = 5.256; // angstrom
 const double boxlen = cellpar * box_side;
 const int funits = 4;
-const int natoms = funits * box_side * box_side * box_side;
-const double unitpos[ funits * ndims ] = {
+const int natoms = funits * (int)pow( (double)box_side, (double)ndims );
+const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
   0.5*cellpar, 0., 0.5*cellpar,
@@ -64,7 +65,7 @@ const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
-const double N_dof = ( natoms * 3 - 3 );
+const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower ndims)
 const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
 const double temp_scale = mvv2e / ( N_dof * k_B );
 
@@ -72,9 +73,9 @@ const double temp_scale = mvv2e / ( N_dof * k_B );
 // Allocate arrays
 int* numneigh = new int [ natoms ];
 int* neigh = new int [ natoms * maxneigh ];
-double* pos = new double [ natoms * ndims ];
-double* vel = new double [ natoms * ndims ];
-double* forc = new double [ natoms * ndims ];
+double* pos = new double [ natoms * 3 ];
+double* vel = new double [ natoms * 3 ];
+double* forc = new double [ natoms * 3 ];
 
 // Define simulation variables
 double temp, ekin, epot, etot;
@@ -82,14 +83,14 @@ int istep = 0;
 
 
 // Define structure and initialise velocities
-setup_struc_vel( ndims, funits, box_side, cellpar, unitpos, natoms, pos, vel );
+setup_struc_vel( funits, box_side, cellpar, unitpos, natoms, pos, vel );
 
 // Rescale to desired temperature
 get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
-rescale_temp( vel, natoms, ndims, temp_ini, temp, ekin );
+rescale_temp( vel, natoms, temp_ini, temp, ekin );
 
 // Build (full) neighbour list
-get_neigh( pos, natoms, boxlen, ndims, cutskinsq, maxneigh, numneigh, neigh );
+get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 
 // Compute initial potential energy
 //epot 
@@ -99,8 +100,8 @@ get_neigh( pos, natoms, boxlen, ndims, cutskinsq, maxneigh, numneigh, neigh );
 
 
 // Get debug prints
-if ( 1 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
-if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot  ); }
+if ( 0 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
+if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
 
@@ -139,9 +140,10 @@ return 0;
 
 
 // Define structure and initialise velocities
-void setup_struc_vel( const int ndims, const int funits, const int box_side, const double cellpar, const double* unitpos, const int natoms, double* pos, double* vel ) 
+// note that this implies 3D PBC
+void setup_struc_vel( const int funits, const int box_side, const double cellpar, const double* unitpos, const int natoms, double* pos, double* vel ) 
 {
-  const int fd = funits * ndims;
+  const int fd = funits * 3;
   const int bfd = box_side * fd;
   const int bbfd = box_side * bfd;
 
@@ -154,11 +156,11 @@ void setup_struc_vel( const int ndims, const int funits, const int box_side, con
     for ( int j = 0; j < box_side; j++ ) {
       for ( int k = 0; k < box_side; k++ ) {
         for ( int l = 0; l < funits; l++ ) {
-          idx = i * bbfd + j * bfd + k * fd + l * ndims;
+          idx = i * bbfd + j * bfd + k * fd + l * 3;
           // positions
-          pos[ idx + 0 ] = cellpar*i + unitpos[ l * ndims + 0 ];
-          pos[ idx + 1 ] = cellpar*j + unitpos[ l * ndims + 1 ];
-          pos[ idx + 2 ] = cellpar*k + unitpos[ l * ndims + 2 ];
+          pos[ idx + 0 ] = cellpar*i + unitpos[ 3 * l + 0 ];
+          pos[ idx + 1 ] = cellpar*j + unitpos[ 3 * l + 1 ];
+          pos[ idx + 2 ] = cellpar*k + unitpos[ 3 * l + 2 ];
           //cout << left << setw(8) << pos[idx+0] << setw(8) << pos[idx+1] << setw(8) << pos[idx+2] << endl ; // test only
           //cout << idx << endl; // test only
   
@@ -186,9 +188,9 @@ void setup_struc_vel( const int ndims, const int funits, const int box_side, con
   // Adjust velocities
   // Zero centre-of-mass motion
   for (int i = 0; i < natoms; i++) {
-    vel[ i * ndims + 0 ] -= vxtmp;
-    vel[ i * ndims + 1 ] -= vytmp;
-    vel[ i * ndims + 2 ] -= vztmp;
+    vel[ 3 * i + 0 ] -= vxtmp;
+    vel[ 3 * i + 1 ] -= vytmp;
+    vel[ 3 * i + 2 ] -= vztmp;
   }
   
   return;
@@ -202,9 +204,9 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
 {
   double tmp = 0.;
   for (int i = 0; i < natoms; i++) {
-    double vx = vel[ 3*i + 0 ];
-    double vy = vel[ 3*i + 1 ];
-    double vz = vel[ 3*i + 2 ];
+    double vx = vel[ 3 * i + 0 ];
+    double vy = vel[ 3 * i + 1 ];
+    double vz = vel[ 3 * i + 2 ];
     tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
   }
   //cout << "Ave vv : " << tmp / natoms << endl;  // debug
@@ -216,16 +218,16 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
 
 
 // Rescale to desired temperature
-void rescale_temp( double* vel, const int natoms, const int ndims, const double temp_ini, double& temp, double& ekin ) 
+void rescale_temp( double* vel, const int natoms, const double temp_ini, double& temp, double& ekin ) 
 {
   double t_factor, t_factor_sqrt;
   t_factor = temp_ini / temp;
   t_factor_sqrt = sqrt( t_factor );
   
   for (int i = 0; i < natoms; i++) {
-    vel[ i * ndims + 0 ] *= t_factor_sqrt;
-    vel[ i * ndims + 1 ] *= t_factor_sqrt;
-    vel[ i * ndims + 2 ] *= t_factor_sqrt;
+    vel[ 3 * i + 0 ] *= t_factor_sqrt;
+    vel[ 3 * i + 1 ] *= t_factor_sqrt;
+    vel[ 3 * i + 2 ] *= t_factor_sqrt;
   }
   temp *= t_factor;
   ekin *= t_factor;
@@ -235,9 +237,10 @@ void rescale_temp( double* vel, const int natoms, const int ndims, const double 
 
 
 // Build full neighbour list
+// note that this implies 3D PBC
 // NOTE: in this first implementation, this is never updated; 
 // should work at low temperatures, where atoms are likely to stick around their starting positions
-void get_neigh( double* pos, const int natoms, const double boxlen, const int ndims, 
+void get_neigh( double* pos, const int natoms, const double boxlen, 
                 const double cutskinsq, const int maxneigh, 
                 int* numneigh, int* neigh ) 
 {
@@ -253,20 +256,20 @@ void get_neigh( double* pos, const int natoms, const double boxlen, const int nd
     int num_nn = 0;
     for (int j = 0; j < natoms; j++) {
       if ( i == j ) continue;
-      double dx = pos[ i * ndims + 0 ] - pos[ j * ndims + 0 ];
+      double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
       if ( dx > boxhalf ) { dx -= boxlen; }
       if ( dx < - boxhalf ) { dx += boxlen; }
-      double dy = pos[ i * ndims + 1 ] - pos[ j * ndims + 1 ];
+      double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
       if ( dy > boxhalf ) { dy -= boxlen; }
       if ( dy < - boxhalf ) { dy += boxlen; }
-      double dz = pos[ i * ndims + 2 ] - pos[ j * ndims + 2 ];
+      double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
       if ( dz > boxhalf ) { dz -= boxlen; }
       if ( dz < - boxhalf ) { dz += boxlen; }
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
         neigh[ i * maxneigh + num_nn++ ] = j;
       } //else {
-        //cout << i << ' ' << j << ' ' << pos[ i * ndims + 0 ] << ' ' << pos[ i * ndims + 1 ] << ' ' << pos[ i * ndims + 2 ] << ' ' << pos[ j * ndims + 0 ] << ' ' << pos[ j * ndims + 1 ] << ' ' << pos[ j * ndims + 2 ] << endl;
+        //cout << i << ' ' << j << ' ' << pos[ 3 * i + 0 ] << ' ' << pos[ 3 * i + 1 ] << ' ' << pos[ 3 * i + 2 ] << ' ' << pos[ 3 * j + 0 ] << ' ' << pos[ 3 * j + 1 ] << ' ' << pos[ 3 * j + 2 ] << endl;
       //} // debug
     }
     numneigh[ i ] = num_nn;
@@ -318,7 +321,7 @@ void print_arr(double* arr, const int natoms)
 {
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
   for ( int i = 0; i < natoms; i++) {
-    printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3*i+0 ], arr[ 3*i+1 ], arr[ 3*i+2 ] );
+    printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
   }
 
 return;
