@@ -36,10 +36,10 @@ const double step = 0.001; // ps
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
 const int ndims = 3; // no of periodic dimensions // beware: some of the code below implies 3D PBC
-const double cellpar = 5.256; // angstrom
-const double boxlen = cellpar * box_side;
 const int funits = 4;
 const int natoms = funits * (int)pow( (double)box_side, (double)ndims );
+const double cellpar = 5.256; // angstrom
+const double boxlen = cellpar * box_side;
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
@@ -84,7 +84,6 @@ int istep = 0;
 
 // Define structure and initialise velocities
 setup_struc_vel( funits, box_side, cellpar, unitpos, natoms, pos, vel );
-
 // Rescale to desired temperature
 get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
 rescale_temp( vel, natoms, temp_ini, temp, ekin );
@@ -213,6 +212,7 @@ void get_temp_ekin(double* vel, const int natoms, const double mass,
 
   temp = tmp * temp_scale;
   ekin = tmp * ekin_scale * 0.5;
+
   return;
 }
 
@@ -277,10 +277,10 @@ void get_neigh( double* pos, const int natoms, const double boxlen,
     // max_nn = max( max_nn, num_nn );
     // min_nn = min( min_nn, num_nn);
   }
-
   // cout << "tot_nn = " << tot_nn << endl;
   // cout << "max_nn = " << max_nn << endl;
   // cout << "min_nn = " << min_nn << endl;
+
   return;
 }
 
@@ -324,7 +324,7 @@ void print_arr(double* arr, const int natoms)
     printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
   }
 
-return;
+  return;
 }
 
 
