@@ -166,11 +166,11 @@ if ( debug_info ) {
 
 // big loop: time evolution
 
+// later on: conditional neighbour update
 
+// PBC check
 // compute forces
-
 // integrate
-
 // update velocities
 
 // compute and print output when required
