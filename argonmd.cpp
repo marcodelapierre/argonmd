@@ -35,9 +35,8 @@ const double step = 0.001; // ps
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
-const int ndims = 3; // no of periodic dimensions // beware: some of the code below implies 3D PBC
 const int funits = 4;
-const int natoms = funits * (int)pow( (double)box_side, (double)ndims );
+const int natoms = funits * box_side * box_side * box_side; // note that this implies 3D PBC
 const double cellpar = 5.256; // angstrom
 const double boxlen = cellpar * box_side;
 const double unitpos[ funits * 3 ] = {
@@ -65,7 +64,7 @@ const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
-const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower ndims)
+const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
 const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
 const double temp_scale = mvv2e / ( N_dof * k_B );
 
@@ -184,7 +183,6 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
   vytmp /= natoms;
   vztmp /= natoms;
 
-  // Adjust velocities
   // Zero centre-of-mass motion
   for (int i = 0; i < natoms; i++) {
     vel[ 3 * i + 0 ] -= vxtmp;

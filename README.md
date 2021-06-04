@@ -9,8 +9,8 @@ Lennard Jones solid with velocity Verlet integrator
 * Physical model
   * Homo-atomic Argon system
     * implies single mass value, single set of force-field parameters
-  * Three-dimensional (3D) with periodic boundary conditions
-  * Solid state (**for now** - Initial temperature (T) below 40 K to be safe)
+  * Three-dimensional (3D) periodic boundary conditions
+  * Solid phase (**for now** - Initial temperature (T) below 40 K to be safe)
   * Starting structure is the equilibrium faced-centered cubic (*fcc*) lattice
   * NVE ensemble (constant Number of particles, Volume and total Energy)
   * Lennard-Jones (*lj*) pairwise interactions, with distance cut-off
