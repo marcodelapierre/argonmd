@@ -10,6 +10,7 @@ void get_temp_ekin(double*, const int, const double, const double, const double,
 void rescale_temp( double*, const int, const double, double&, double& );
 void get_neigh( double*, const int, const double, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
+//
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( double*, int );
 void print_info ( const double, const double, const int, const double, const double, const double );
@@ -112,13 +113,15 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 // later on: conditional neighbour update
 
 // PBC check
+
 // compute forces
 // integrate
 // update velocities
 
 // compute and print output when required
+// dump xyz (optional)
 
-
+// add timer across program
 
 
 
