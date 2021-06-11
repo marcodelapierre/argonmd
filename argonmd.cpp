@@ -6,9 +6,9 @@ using namespace std;
 
 // function headers
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double* );
-void get_temp_ekin(double*, const int, const double, const double, const double, double&, double& );
+void get_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
-void get_neigh( double*, const int, const double, const double, const int, int*, int* );
+void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
 void check_pbc( double*, const int, const double );
 //
@@ -58,6 +58,8 @@ const double mass = 39.95; // gram/mol (also amu)
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
 const double sigma = 3.504; // angstrom
+const double sigma2 = sigma * sigma;
+const double sigma6 = sigma2 * sigma2 * sigma2;
 const double cut_fac = 2.5; // adimensional, multiplies sigma
 const double skin_fac = 0.3; // adimensional, multiplies sigma
 const double cut = cut_fac * sigma;
@@ -79,7 +81,7 @@ double* vel = new double [ natoms * 3 ];
 double* forc = new double [ natoms * 3 ];
 
 // Define simulation variables
-double temp, ekin, epot, etot;
+double temp, ekin, epot;
 int istep = 0;
 
 
@@ -98,7 +100,51 @@ get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 //epot 
 
 
+const double boxhalf = boxlen * 0.5;
+epot = 0.;
+for ( int i = 0; i < natoms; i++ ) {
+  const int* const neighs = &neigh[ i * maxneigh ];
+  const int numneighs = numneigh[ i ];
+  const double x = pos[ 3 * i + 0 ];
+  const double y = pos[ 3 * i + 1 ];
+  const double z = pos[ 3 * i + 2 ];
+  double fx = 0.;
+  double fy = 0.;
+  double fz = 0.;
 
+  for ( int k = 0; k < numneighs; k++ ) {
+    const int j = neighs[k];
+    double dx = x - pos[ 3 * j + 0 ];
+    if ( dx > boxhalf ) { dx -= boxlen; }
+    if ( dx < - boxhalf ) { dx += boxlen; }
+
+    double dy = y - pos[ 3 * j + 1 ];
+    if ( dy > boxhalf ) { dy -= boxlen; }
+    if ( dy < - boxhalf ) { dy += boxlen; }
+
+    double dz = z - pos[ 3 * j + 2 ];
+    if ( dz > boxhalf ) { dz -= boxlen; }
+    if ( dz < - boxhalf ) { dz += boxlen; }
+
+    double rsq = dx * dx + dy * dy + dz * dz;
+    if ( rsq <= cutskinsq ) {
+      const double sr2 = 1.0 / rsq;
+      const double sr6 = sr2 * sr2 * sr2 * sigma6;
+
+      // this bit to be checked
+      const double force = 48.0 * sr6 * (sr6 - 0.5) * sr2 * epsilonzz;
+      fx += dx * force;
+      fy += dy * force;
+      fz += dz * force;
+      epot = sr6 * (sr6 - 1.0) * epsilonzz;
+      //
+    }
+  }
+  forc[ 3 * i + 0 ] = fx;
+  forc[ 3 * i + 1 ] = fy;
+  forc[ 3 * i + 2 ] = fz;
+}
+epot *= 4.0;
 
 
 
@@ -111,21 +157,21 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
 
-// big loop: time evolution #4
+// big loop: time evolution #3
 
-// later on: conditional neighbour update #8
+// later on: conditional neighbour update #7
 
 // PBC check
 //check_pbc( pos, natoms, boxlen );
 
-// compute forces #3
-// integrate #4
-// update velocities #4
+// compute forces #2
+// integrate #3
+// update velocities #3
 
-// compute and print output when required #5
-// dump xyz (optional) #6
+// compute and print output when required #4
+// dump xyz (optional) #5
 
-// add timer across program #7
+// add timer across program #6
 
 
 
@@ -191,7 +237,7 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
   vztmp /= natoms;
 
   // Zero centre-of-mass motion
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] -= vxtmp;
     vel[ 3 * i + 1 ] -= vytmp;
     vel[ 3 * i + 2 ] -= vztmp;
@@ -202,12 +248,12 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
 
 
 // Compute temperature and kinetic energy
-void get_temp_ekin( double* vel, const int natoms, const double mass, 
+void get_temp_ekin( const double* const vel, const int natoms, const double mass, 
                     const double temp_scale, const double ekin_scale, 
                     double& temp, double& ekin ) 
 {
   double tmp = 0.;
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     double vx = vel[ 3 * i + 0 ];
     double vy = vel[ 3 * i + 1 ];
     double vz = vel[ 3 * i + 2 ];
@@ -229,7 +275,7 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini, double&
   t_factor = temp_ini / temp;
   t_factor_sqrt = sqrt( t_factor );
   
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] *= t_factor_sqrt;
     vel[ 3 * i + 1 ] *= t_factor_sqrt;
     vel[ 3 * i + 2 ] *= t_factor_sqrt;
@@ -245,31 +291,35 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini, double&
 // note that this implies 3D PBC
 // NOTE: in this first implementation, this is never updated; 
 // should work at low temperatures, where atoms are likely to stick around their starting positions
-void get_neigh( double* pos, const int natoms, const double boxlen, 
+void get_neigh( const double* const pos, const int natoms, const double boxlen, 
                 const double cutskinsq, const int maxneigh, 
                 int* numneigh, int* neigh ) 
 {
   const double boxhalf = boxlen * 0.5;
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     numneigh[ i ] = 0;
   }
 
   // int tot_nn = 0;
   // int max_nn = 0;
   // int min_nn = 1000000;
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     int num_nn = 0;
-    for (int j = 0; j < natoms; j++) {
+    for ( int j = 0; j < natoms; j++ ) {
       if ( i == j ) continue;
+
       double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf ) { dx -= boxlen; }
+      if ( dx > boxhalf )   { dx -= boxlen; }
       if ( dx < - boxhalf ) { dx += boxlen; }
+
       double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf ) { dy -= boxlen; }
+      if ( dy > boxhalf )   { dy -= boxlen; }
       if ( dy < - boxhalf ) { dy += boxlen; }
+
       double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf ) { dz -= boxlen; }
+      if ( dz > boxhalf )   { dz -= boxlen; }
       if ( dz < - boxhalf ) { dz += boxlen; }
+
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
         neigh[ i * maxneigh + num_nn++ ] = j;
@@ -292,7 +342,7 @@ void get_neigh( double* pos, const int natoms, const double boxlen,
 
 void check_pbc( double* pos, const int natoms, const double boxlen ) 
 {
-  for (int i = 0; i < natoms; i++) {
+  for ( int i = 0; i < natoms; i++ ) {
     double x = pos[ 3 * i + 0 ];
     if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
     if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
