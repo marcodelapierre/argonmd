@@ -10,6 +10,7 @@ void get_temp_ekin(double*, const int, const double, const double, const double,
 void rescale_temp( double*, const int, const double, double&, double& );
 void get_neigh( double*, const int, const double, const double, const int, int*, int* );
 double get_epot( double*, const int, const double, const double );
+void check_pbc( double*, const int, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( double*, int );
@@ -88,11 +89,15 @@ setup_struc_vel( funits, box_side, cellpar, unitpos, natoms, pos, vel );
 get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
 rescale_temp( vel, natoms, temp_ini, temp, ekin );
 
+// PBC check // not needed at startup with current input structure, yet here for generality
+check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
 get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 
-// Compute initial potential energy
+// Compute initial potential energy #2
 //epot 
+
+
 
 
 
@@ -106,22 +111,21 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
 
+// big loop: time evolution #4
 
-
-// big loop: time evolution
-
-// later on: conditional neighbour update
+// later on: conditional neighbour update #8
 
 // PBC check
+//check_pbc( pos, natoms, boxlen );
 
-// compute forces
-// integrate
-// update velocities
+// compute forces #3
+// integrate #4
+// update velocities #4
 
-// compute and print output when required
-// dump xyz (optional)
+// compute and print output when required #5
+// dump xyz (optional) #6
 
-// add timer across program
+// add timer across program #7
 
 
 
@@ -198,9 +202,9 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
 
 
 // Compute temperature and kinetic energy
-void get_temp_ekin(double* vel, const int natoms, const double mass, 
-                   const double temp_scale, const double ekin_scale, 
-                   double& temp, double& ekin) 
+void get_temp_ekin( double* vel, const int natoms, const double mass, 
+                    const double temp_scale, const double ekin_scale, 
+                    double& temp, double& ekin ) 
 {
   double tmp = 0.;
   for (int i = 0; i < natoms; i++) {
@@ -286,6 +290,26 @@ void get_neigh( double* pos, const int natoms, const double boxlen,
 }
 
 
+void check_pbc( double* pos, const int natoms, const double boxlen ) 
+{
+  for (int i = 0; i < natoms; i++) {
+    double x = pos[ 3 * i + 0 ];
+    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
+    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
+  
+    double y = pos[ 3 * i + 1 ];
+    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
+    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
+  
+    double z = pos[ 3 * i + 2 ];
+    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
+    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
+  }
+
+  return;
+}
+
+
 // This is taken from Mantevo/miniMD
 /* Park/Miller RNG w/out MASKING, so as to be like f90s version */
 #define IA 16807
@@ -318,7 +342,7 @@ double random(int* idum)
 
 
 // Generic function to print arrays
-void print_arr(double* arr, const int natoms) 
+void print_arr( double* arr, const int natoms ) 
 {
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
   for ( int i = 0; i < natoms; i++) {
