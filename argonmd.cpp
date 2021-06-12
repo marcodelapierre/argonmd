@@ -29,6 +29,7 @@ int main() {
 const int box_side = 4; // no of unit cells per dimension
 const int nsteps = 200000;
 const int nthermo = 1000; // print thermo info every these steps
+const int ndump = 1000; // dump structure every these steps
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 // pressure unit is bar
 // force unit is eV/Ang
@@ -72,7 +73,7 @@ const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, 
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
-const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
+const double mvv2e = 1.036427e-04; // this factor is needed for kinetic energy when using metal units (see my notes)
 const double temp_scale = mvv2e / ( N_dof * k_B );
 
 
@@ -124,14 +125,13 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 // Update (full) neighbour list
 //if( ( istep > 0 ) && ( istep%nneighupd == 0 ) ) { get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh ); }
 
-// compute forces #2
-// integrate #3
-// update velocities #3
+// compute forces #3
+// integrate positions and velocities #3
 
 // compute and print output when required #4
-// dump xyz (optional) #5
 
-// add timer across program #6
+// dump xyz (optional) #5
+// add timer for time loop #6
 
 
 
