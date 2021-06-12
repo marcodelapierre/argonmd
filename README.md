@@ -7,6 +7,7 @@ Lennard Jones solid with velocity Verlet integrator
 ### Assumptions
 
 * Physical model
+  * *Metal* units from LAMMPS
   * Homo-atomic Argon system
     * implies single mass value, single set of force-field parameters
   * Three-dimensional (3D) periodic boundary conditions (PBC)
@@ -18,6 +19,17 @@ Lennard Jones solid with velocity Verlet integrator
 * Algorithms
   * Velocity Verlet integrator
   * Full neighbour list
+
+
+### To-do List
+
+* Multi-file code base
+* Parallel implementations
+  * OpenMP multi-threaded
+  * OpenMP GPU offloading
+  * CUDA
+  * HIP
+* Object Oriented (far future)
 
 
 ### Credits
