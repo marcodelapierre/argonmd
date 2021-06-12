@@ -369,7 +369,8 @@ void get_forc_epot( const double* const pos, const int natoms,
     forc[ 3 * i + 1 ] = fy;
     forc[ 3 * i + 2 ] = fz;
   }
-  epot *= 4.0;
+  epot *= 2.0; // 4.0 * 0.5 [4.0 from LJ formula, 0.5 to account for double counting of contributes]
+  // normalise by natoms to compare with LAMMPS
   
   return;
 }
