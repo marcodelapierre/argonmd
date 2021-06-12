@@ -30,6 +30,7 @@ const int nsteps = 200000;
 const int nthermo = 1000; // print thermo info every these steps
 const double temp_ini = 10.; // K
 // pressure unit is bar
+// force unit is eV/Ang
 //
 // Other parameters from here on
 //
@@ -114,6 +115,7 @@ for ( int i = 0; i < natoms; i++ ) {
 
   for ( int k = 0; k < numneighs; k++ ) {
     const int j = neighs[k];
+
     double dx = x - pos[ 3 * j + 0 ];
     if ( dx > boxhalf ) { dx -= boxlen; }
     if ( dx < - boxhalf ) { dx += boxlen; }
@@ -132,12 +134,12 @@ for ( int i = 0; i < natoms; i++ ) {
       const double sr6 = sr2 * sr2 * sr2 * sigma6;
 
       // this bit to be checked
-      const double force = 48.0 * sr6 * (sr6 - 0.5) * sr2 * epsilonzz;
+      const double force = 48.0 * sr6 * (sr6 - 0.5) * sr2 * eps;
       fx += dx * force;
       fy += dy * force;
       fz += dz * force;
-      epot = sr6 * (sr6 - 1.0) * epsilonzz;
       //
+      epot = sr6 * (sr6 - 1.0) * eps;
     }
   }
   forc[ 3 * i + 0 ] = fx;
