@@ -8,9 +8,10 @@ using namespace std;
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double* );
 void get_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
-void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
-double get_epot( double*, const int, const double, const double );
 void check_pbc( double*, const int, const double );
+void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
+void get_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
+                    const double, const double, const double, const double, double*, double& );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int );
@@ -99,52 +100,10 @@ get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 
 // Compute initial potential energy #2
 //epot 
+get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
+               boxlen, cutskinsq, sigma6, eps, forc, epot );
 
 
-const double boxhalf = boxlen * 0.5;
-epot = 0.;
-for ( int i = 0; i < natoms; i++ ) {
-  const int* const neighs = &neigh[ i * maxneigh ];
-  const int numneighs = numneigh[ i ];
-  const double x = pos[ 3 * i + 0 ];
-  const double y = pos[ 3 * i + 1 ];
-  const double z = pos[ 3 * i + 2 ];
-  double fx = 0.;
-  double fy = 0.;
-  double fz = 0.;
-
-  for ( int k = 0; k < numneighs; k++ ) {
-    const int j = neighs[k];
-
-    double dx = x - pos[ 3 * j + 0 ];
-    if ( dx > boxhalf ) { dx -= boxlen; }
-    if ( dx < - boxhalf ) { dx += boxlen; }
-
-    double dy = y - pos[ 3 * j + 1 ];
-    if ( dy > boxhalf ) { dy -= boxlen; }
-    if ( dy < - boxhalf ) { dy += boxlen; }
-
-    double dz = z - pos[ 3 * j + 2 ];
-    if ( dz > boxhalf ) { dz -= boxlen; }
-    if ( dz < - boxhalf ) { dz += boxlen; }
-
-    const double rsq = dx * dx + dy * dy + dz * dz;
-    if ( rsq <= cutskinsq ) {
-      const double irsq = 1.0 / rsq;
-      const double isr6 = irsq * irsq * irsq * sigma6;
-
-      const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
-      fx += dx * force_fac;
-      fy += dy * force_fac;
-      fz += dz * force_fac;
-      epot += isr6 * (isr6 - 1.0) * eps;
-    }
-  }
-  forc[ 3 * i + 0 ] = fx;
-  forc[ 3 * i + 1 ] = fy;
-  forc[ 3 * i + 2 ] = fz;
-}
-epot *= 4.0;
 
 
 
@@ -192,7 +151,9 @@ return 0;
 
 // Define structure and initialise velocities
 // note that this implies 3D PBC
-void setup_struc_vel( const int funits, const int box_side, const double cellpar, const double* unitpos, const int natoms, double* pos, double* vel ) 
+void setup_struc_vel( const int funits, const int box_side, 
+                      const double cellpar, const double* unitpos, 
+                      const int natoms, double* pos, double* vel ) 
 {
   const int fd = funits * 3;
   const int bfd = box_side * fd;
@@ -267,7 +228,8 @@ void get_temp_ekin( const double* const vel, const int natoms, const double mass
 
 
 // Rescale to desired temperature
-void rescale_temp( double* vel, const int natoms, const double temp_ini, double& temp, double& ekin ) 
+void rescale_temp( double* vel, const int natoms, const double temp_ini, 
+                   double& temp, double& ekin ) 
 {
   const double t_factor = temp_ini / temp;
   const double t_factor_sqrt = sqrt( t_factor );
@@ -357,6 +319,61 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 }
 
 
+void get_forc_epot( const double* const pos, const int natoms, 
+                    const int maxneigh, const int* const numneigh, const int* const neigh, 
+                    const double boxlen, const double cutskinsq, 
+                    const double sigma6, const double eps, 
+                    double* forc, double& epot )
+{
+const double boxhalf = boxlen * 0.5;
+epot = 0.;
+for ( int i = 0; i < natoms; i++ ) {
+  const int* const neighs = &neigh[ i * maxneigh ];
+  const int numneighs = numneigh[ i ];
+  const double x = pos[ 3 * i + 0 ];
+  const double y = pos[ 3 * i + 1 ];
+  const double z = pos[ 3 * i + 2 ];
+  double fx = 0.;
+  double fy = 0.;
+  double fz = 0.;
+
+  for ( int k = 0; k < numneighs; k++ ) {
+    const int j = neighs[k];
+
+    double dx = x - pos[ 3 * j + 0 ];
+    if ( dx > boxhalf ) { dx -= boxlen; }
+    if ( dx < - boxhalf ) { dx += boxlen; }
+
+    double dy = y - pos[ 3 * j + 1 ];
+    if ( dy > boxhalf ) { dy -= boxlen; }
+    if ( dy < - boxhalf ) { dy += boxlen; }
+
+    double dz = z - pos[ 3 * j + 2 ];
+    if ( dz > boxhalf ) { dz -= boxlen; }
+    if ( dz < - boxhalf ) { dz += boxlen; }
+
+    const double rsq = dx * dx + dy * dy + dz * dz;
+    if ( rsq <= cutskinsq ) {
+      const double irsq = 1.0 / rsq;
+      const double isr6 = irsq * irsq * irsq * sigma6;
+
+      const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
+      fx += dx * force_fac;
+      fy += dy * force_fac;
+      fz += dz * force_fac;
+      epot += isr6 * (isr6 - 1.0) * eps;
+    }
+  }
+  forc[ 3 * i + 0 ] = fx;
+  forc[ 3 * i + 1 ] = fy;
+  forc[ 3 * i + 2 ] = fz;
+}
+epot *= 4.0;
+
+return;
+}
+
+
 // This is taken from Mantevo/miniMD
 /* Park/Miller RNG w/out MASKING, so as to be like f90s version */
 #define IA 16807
@@ -401,7 +418,9 @@ void print_arr( const double* const arr, const int natoms )
 
 
 // Print info on simulation model
-void print_info ( const double cellpar, const double boxlen, const int natoms, const double temp, const double ekin, const double epot ) 
+void print_info ( const double cellpar, const double boxlen, 
+                  const int natoms, const double temp, 
+                  const double ekin, const double epot ) 
 {
   cout << "Cell_par[Ang] : " << cellpar << endl;
   cout << "Box_len[Ang] : " << boxlen << endl;
