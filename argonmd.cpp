@@ -101,7 +101,7 @@ get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 // Compute initial potential energy #2
 //epot 
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-               boxlen, cutskinsq, sigma6, eps, forc, epot );
+               boxlen, cutsq, sigma6, eps, forc, epot );
 
 
 
@@ -321,7 +321,7 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 
 void get_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
-                    const double boxlen, const double cutskinsq, 
+                    const double boxlen, const double cutsq, 
                     const double sigma6, const double eps, 
                     double* forc, double& epot )
 {
@@ -353,7 +353,7 @@ void get_forc_epot( const double* const pos, const int natoms,
       if ( dz < - boxhalf ) { dz += boxlen; }
   
       const double rsq = dx * dx + dy * dy + dz * dz;
-      if ( rsq <= cutskinsq ) {
+      if ( rsq <= cutsq ) {
         const double irsq = 1.0 / rsq;
         const double isr6 = irsq * irsq * irsq * sigma6;
   
