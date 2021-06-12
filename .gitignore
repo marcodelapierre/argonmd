@@ -3,3 +3,5 @@ argonmd.x
 .vscode*
 *.dSYM*
 out*
+z
+zio*
