@@ -13,7 +13,7 @@ double get_epot( double*, const int, const double, const double );
 void check_pbc( double*, const int, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
-void print_arr( double*, int );
+void print_arr( const double* const, const int );
 void print_info ( const double, const double, const int, const double, const double, const double );
 
 
@@ -128,7 +128,7 @@ for ( int i = 0; i < natoms; i++ ) {
     if ( dz > boxhalf ) { dz -= boxlen; }
     if ( dz < - boxhalf ) { dz += boxlen; }
 
-    double rsq = dx * dx + dy * dy + dz * dz;
+    const double rsq = dx * dx + dy * dy + dz * dz;
     if ( rsq <= cutskinsq ) {
       const double irsq = 1.0 / rsq;
       const double isr6 = irsq * irsq * irsq * sigma6;
@@ -137,7 +137,7 @@ for ( int i = 0; i < natoms; i++ ) {
       fx += dx * force_fac;
       fy += dy * force_fac;
       fz += dz * force_fac;
-      epot = isr6 * (isr6 - 1.0) * eps;
+      epot += isr6 * (isr6 - 1.0) * eps;
     }
   }
   forc[ 3 * i + 0 ] = fx;
@@ -150,7 +150,7 @@ epot *= 4.0;
 
 
 // Get debug prints
-if ( 0 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
+if ( 1 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
 if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
@@ -198,8 +198,6 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
   const int bfd = box_side * fd;
   const int bbfd = box_side * bfd;
 
-  int idx;
-  int seed;
   double vxtmp = 0.;
   double vytmp = 0.;
   double vztmp = 0.;
@@ -207,7 +205,7 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
     for ( int j = 0; j < box_side; j++ ) {
       for ( int k = 0; k < box_side; k++ ) {
         for ( int l = 0; l < funits; l++ ) {
-          idx = i * bbfd + j * bfd + k * fd + l * 3;
+          const int idx = i * bbfd + j * bfd + k * fd + l * 3;
           // positions
           pos[ idx + 0 ] = cellpar*i + unitpos[ 3 * l + 0 ];
           pos[ idx + 1 ] = cellpar*j + unitpos[ 3 * l + 1 ];
@@ -216,7 +214,7 @@ void setup_struc_vel( const int funits, const int box_side, const double cellpar
           //cout << idx << endl; // test only
   
           // velocities
-          seed = idx;
+          int seed = idx;
           for ( int m = 0; m < 5; m++ ) random( &seed );
           vel[ idx + 0 ] = random( &seed );
           for ( int m = 0; m < 5; m++ ) random( &seed );
@@ -254,9 +252,9 @@ void get_temp_ekin( const double* const vel, const int natoms, const double mass
 {
   double tmp = 0.;
   for ( int i = 0; i < natoms; i++ ) {
-    double vx = vel[ 3 * i + 0 ];
-    double vy = vel[ 3 * i + 1 ];
-    double vz = vel[ 3 * i + 2 ];
+    const double vx = vel[ 3 * i + 0 ];
+    const double vy = vel[ 3 * i + 1 ];
+    const double vz = vel[ 3 * i + 2 ];
     tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
   }
   //cout << "Ave vv : " << tmp / natoms << endl;  // debug
@@ -271,9 +269,8 @@ void get_temp_ekin( const double* const vel, const int natoms, const double mass
 // Rescale to desired temperature
 void rescale_temp( double* vel, const int natoms, const double temp_ini, double& temp, double& ekin ) 
 {
-  double t_factor, t_factor_sqrt;
-  t_factor = temp_ini / temp;
-  t_factor_sqrt = sqrt( t_factor );
+  const double t_factor = temp_ini / temp;
+  const double t_factor_sqrt = sqrt( t_factor );
   
   for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] *= t_factor_sqrt;
@@ -392,7 +389,7 @@ double random(int* idum)
 
 
 // Generic function to print arrays
-void print_arr( double* arr, const int natoms ) 
+void print_arr( const double* const arr, const int natoms ) 
 {
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
   for ( int i = 0; i < natoms; i++) {
