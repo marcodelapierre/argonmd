@@ -325,52 +325,52 @@ void get_forc_epot( const double* const pos, const int natoms,
                     const double sigma6, const double eps, 
                     double* forc, double& epot )
 {
-const double boxhalf = boxlen * 0.5;
-epot = 0.;
-for ( int i = 0; i < natoms; i++ ) {
-  const int* const neighs = &neigh[ i * maxneigh ];
-  const int numneighs = numneigh[ i ];
-  const double x = pos[ 3 * i + 0 ];
-  const double y = pos[ 3 * i + 1 ];
-  const double z = pos[ 3 * i + 2 ];
-  double fx = 0.;
-  double fy = 0.;
-  double fz = 0.;
-
-  for ( int k = 0; k < numneighs; k++ ) {
-    const int j = neighs[k];
-
-    double dx = x - pos[ 3 * j + 0 ];
-    if ( dx > boxhalf ) { dx -= boxlen; }
-    if ( dx < - boxhalf ) { dx += boxlen; }
-
-    double dy = y - pos[ 3 * j + 1 ];
-    if ( dy > boxhalf ) { dy -= boxlen; }
-    if ( dy < - boxhalf ) { dy += boxlen; }
-
-    double dz = z - pos[ 3 * j + 2 ];
-    if ( dz > boxhalf ) { dz -= boxlen; }
-    if ( dz < - boxhalf ) { dz += boxlen; }
-
-    const double rsq = dx * dx + dy * dy + dz * dz;
-    if ( rsq <= cutskinsq ) {
-      const double irsq = 1.0 / rsq;
-      const double isr6 = irsq * irsq * irsq * sigma6;
-
-      const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
-      fx += dx * force_fac;
-      fy += dy * force_fac;
-      fz += dz * force_fac;
-      epot += isr6 * (isr6 - 1.0) * eps;
+  const double boxhalf = boxlen * 0.5;
+  epot = 0.;
+  for ( int i = 0; i < natoms; i++ ) {
+    const int* const neighs = &neigh[ i * maxneigh ];
+    const int numneighs = numneigh[ i ];
+    const double x = pos[ 3 * i + 0 ];
+    const double y = pos[ 3 * i + 1 ];
+    const double z = pos[ 3 * i + 2 ];
+    double fx = 0.;
+    double fy = 0.;
+    double fz = 0.;
+  
+    for ( int k = 0; k < numneighs; k++ ) {
+      const int j = neighs[k];
+  
+      double dx = x - pos[ 3 * j + 0 ];
+      if ( dx > boxhalf ) { dx -= boxlen; }
+      if ( dx < - boxhalf ) { dx += boxlen; }
+  
+      double dy = y - pos[ 3 * j + 1 ];
+      if ( dy > boxhalf ) { dy -= boxlen; }
+      if ( dy < - boxhalf ) { dy += boxlen; }
+  
+      double dz = z - pos[ 3 * j + 2 ];
+      if ( dz > boxhalf ) { dz -= boxlen; }
+      if ( dz < - boxhalf ) { dz += boxlen; }
+  
+      const double rsq = dx * dx + dy * dy + dz * dz;
+      if ( rsq <= cutskinsq ) {
+        const double irsq = 1.0 / rsq;
+        const double isr6 = irsq * irsq * irsq * sigma6;
+  
+        const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
+        fx += dx * force_fac;
+        fy += dy * force_fac;
+        fz += dz * force_fac;
+        epot += isr6 * (isr6 - 1.0) * eps;
+      }
     }
+    forc[ 3 * i + 0 ] = fx;
+    forc[ 3 * i + 1 ] = fy;
+    forc[ 3 * i + 2 ] = fz;
   }
-  forc[ 3 * i + 0 ] = fx;
-  forc[ 3 * i + 1 ] = fy;
-  forc[ 3 * i + 2 ] = fz;
-}
-epot *= 4.0;
-
-return;
+  epot *= 4.0;
+  
+  return;
 }
 
 
