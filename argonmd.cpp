@@ -29,7 +29,7 @@ int main() {
 const int box_side = 4; // no of unit cells per dimension
 const int nsteps = 200000;
 const int nthermo = 1000; // print thermo info every these steps
-const double temp_ini = 10.; // K
+const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 // pressure unit is bar
 // force unit is eV/Ang
 //
@@ -41,7 +41,7 @@ const double step = 0.001; // ps
 // Note that fcc implies 3D PBC
 const int funits = 4;
 const int natoms = funits * box_side * box_side * box_side; // note that this implies 3D PBC
-const double cellpar = 5.256; // angstrom
+const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
 const double boxlen = cellpar * box_side;
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
@@ -69,6 +69,7 @@ const double cutskin = cut + skin_fac * sigma;
 const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
+const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
 const double mvv2e = 1.036427e-04; // this factor is needed for energy when using metal units
@@ -98,7 +99,7 @@ check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
 get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 
-// Compute initial potential energy #2
+// Compute initial potential energy
 //epot 
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, cutsq, sigma6, eps, forc, epot );
@@ -118,10 +119,10 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 // big loop: time evolution #3
 
-// later on: conditional neighbour update #7
-
 // PBC check
 //check_pbc( pos, natoms, boxlen );
+// Update (full) neighbour list
+//if( ( istep > 0 ) && ( istep%nneighupd == 0 ) ) { get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh ); }
 
 // compute forces #2
 // integrate #3
