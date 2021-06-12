@@ -130,16 +130,14 @@ for ( int i = 0; i < natoms; i++ ) {
 
     double rsq = dx * dx + dy * dy + dz * dz;
     if ( rsq <= cutskinsq ) {
-      const double sr2 = 1.0 / rsq;
-      const double sr6 = sr2 * sr2 * sr2 * sigma6;
+      const double irsq = 1.0 / rsq;
+      const double isr6 = irsq * irsq * irsq * sigma6;
 
-      // this bit to be checked
-      const double force = 48.0 * sr6 * (sr6 - 0.5) * sr2 * eps;
-      fx += dx * force;
-      fy += dy * force;
-      fz += dz * force;
-      //
-      epot = sr6 * (sr6 - 1.0) * eps;
+      const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
+      fx += dx * force_fac;
+      fy += dy * force_fac;
+      fz += dz * force_fac;
+      epot = isr6 * (isr6 - 1.0) * eps;
     }
   }
   forc[ 3 * i + 0 ] = fx;
