@@ -23,7 +23,7 @@ Lennard Jones solid with velocity Verlet integrator
   * Both raw and PBC-wrapped spatial coordinates are saved
 
 
-### To-do List
+### To-Do List
 
 * Multi-file code base
 * Parallel implementations
@@ -31,8 +31,8 @@ Lennard Jones solid with velocity Verlet integrator
   * OpenMP GPU offloading
   * CUDA
   * HIP
-  * MPI
-* Object Oriented (far future)
+  * MPI (ideally with domain decomposition for neighbour list)
+* Object-Oriented (far future)
 
 
 ### Credits
