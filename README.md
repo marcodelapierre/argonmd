@@ -17,7 +17,7 @@ Lennard Jones solid with velocity Verlet integrator
   * Lennard-Jones (LJ) pairwise interactions, with distance cut-off
 
 * Algorithmic aspects
-  * *Metal* physical units from LAMMPS
+  * *Metal* physical units as in LAMMPS
   * Velocity Verlet integrator
   * Full neighbour list
   * Both raw and PBC-wrapped spatial coordinates are saved
