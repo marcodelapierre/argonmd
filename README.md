@@ -14,7 +14,7 @@ Lennard Jones solid with velocity Verlet integrator
   * Cubic box as supercell of crystal *fcc* unit cell
   * Three-dimensional (3D) periodic boundary conditions (PBC)
   * NVE ensemble (constant Number of particles, Volume and total Energy)
-  * Lennard-Jones (*lj*) pairwise interactions, with distance cut-off
+  * Lennard-Jones (LJ) pairwise interactions, with distance cut-off
 
 * Algorithmic aspects
   * *Metal* physical units from LAMMPS
