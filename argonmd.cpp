@@ -99,13 +99,9 @@ check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
 get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 
-// Compute initial potential energy
-//epot 
+// Compute initial forces
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, cutsq, sigma6, eps, forc, epot );
-
-
-
 
 
 
@@ -115,17 +111,21 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
 
-
-
 // big loop: time evolution #3
+
+
+
+// integrate N-body system #3
 
 // PBC check
 //check_pbc( pos, natoms, boxlen );
 // Update (full) neighbour list
 //if( ( istep > 0 ) && ( istep%nneighupd == 0 ) ) { get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh ); }
 
-// compute forces #3
-// integrate positions and velocities #3
+
+
+
+
 
 // compute and print output when required #4
 // add timer for time loop #5
@@ -133,7 +133,6 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 //start = clock();
 //watch = clock() - start;
 // to print time: ((float)watch)/CLOCKS_PER_SEC
-
 
 // dump xyz (optional) #6
 
@@ -225,7 +224,7 @@ void get_temp_ekin( const double* const vel, const int natoms, const double mass
     const double vx = vel[ 3 * i + 0 ];
     const double vy = vel[ 3 * i + 1 ];
     const double vz = vel[ 3 * i + 2 ];
-    tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general; for heteroatomic systems, this will become an array
+    tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general
   }
   //cout << "Ave vv : " << tmp / natoms << endl;  // debug
 
@@ -257,8 +256,6 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 
 // Build full neighbour list
 // note that this implies 3D PBC
-// NOTE: in this first implementation, this is never updated; 
-// should work at low temperatures, where atoms are likely to stick around their starting positions
 void get_neigh( const double* const pos, const int natoms, const double boxlen, 
                 const double cutskinsq, const int maxneigh, 
                 int* numneigh, int* neigh ) 
@@ -308,6 +305,8 @@ void get_neigh( const double* const pos, const int natoms, const double boxlen,
 }
 
 
+// Check periodic boundary conditions
+// note that this implies 3D PBC
 void check_pbc( double* pos, const int natoms, const double boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
@@ -328,6 +327,8 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 }
 
 
+// Compute forces and potential energy
+// note that this implies 3D PBC
 void get_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
                     const double boxlen, const double cutsq, 
@@ -384,6 +385,7 @@ void get_forc_epot( const double* const pos, const int natoms,
 }
 
 
+// Random number generator
 // This is taken from Mantevo/miniMD
 /* Park/Miller RNG w/out MASKING, so as to be like f90s version */
 #define IA 16807
@@ -427,7 +429,7 @@ void print_arr( const double* const arr, const int istart, const int istop )
 }
 
 
-// Print info on simulation model
+// Print information on simulation model
 void print_info ( const double cellpar, const double boxlen, 
                   const int natoms, const double temp, 
                   const double ekin, const double epot ) 
