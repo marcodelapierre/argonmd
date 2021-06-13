@@ -23,27 +23,24 @@ void print_info ( const double, const double, const int, const double, const dou
 int main() {
 //cout<<"Hello World!"<<endl;
 
-// Define parameters - using LAMMPS "metal" units convention
-//
-// Input parameters - might become editable by input
-const int box_side = 4; // no of unit cells per dimension
-const int nsteps = 200000;
-const int nthermo = 1000; // print thermo info every these steps
-const int ndump = 1000; // dump structure every these steps
-const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
+// Define parameters - using LAMMPS "metal" physical units convention
 // pressure unit is bar
 // force unit is eV/Ang
 //
-// Other parameters from here on
-//
-const double step = 0.001; // ps
+// Input parameters - might become editable by input
+const int box_units = 4; // no of unit cells per dimension in the simulation box
+const int nsteps = 200000;
+const int nthermo = 1000; // print thermo info every these steps
+const int ndump = 1000; // dump structure every these steps
+const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
+const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
 const int funits = 4;
-const int natoms = funits * box_side * box_side * box_side; // note that this implies 3D PBC
+const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC
 const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
-const double boxlen = cellpar * box_side;
+const double boxlen = cellpar * box_units;
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
@@ -57,6 +54,7 @@ const double N_av = 6.02214129e23; // mol-1
 const double J_eV = 1.602177e-19; // this is q_e
 //
 // Model parameters
+const double step = 0.001; // ps
 const double mass = 39.95; // gram/mol (also amu)
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
@@ -70,11 +68,10 @@ const double cutskin = cut + skin_fac * sigma;
 const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
-const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
-const double mvv2e = 1.036427e-04; // this factor is needed for kinetic energy when using metal units (see my notes)
-const double temp_scale = mvv2e / ( N_dof * k_B );
+const double ekin_scale = 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD)
+const double temp_scale = ekin_scale / ( N_dof * k_B );
 
 
 // Allocate arrays
@@ -90,9 +87,9 @@ int istep = 0;
 
 
 // Define structure and initialise velocities
-setup_struc_vel( funits, box_side, cellpar, unitpos, natoms, pos, vel );
+setup_struc_vel( funits, box_units, cellpar, unitpos, natoms, pos, vel );
 // Rescale to desired temperature
-get_temp_ekin( vel, natoms, mass, temp_scale, mvv2e, temp, ekin );
+get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 rescale_temp( vel, natoms, temp_ini, temp, ekin );
 
 // PBC check // not needed at startup with current input structure, yet here for generality
@@ -152,20 +149,20 @@ return 0;
 
 // Define structure and initialise velocities
 // note that this implies 3D PBC
-void setup_struc_vel( const int funits, const int box_side, 
+void setup_struc_vel( const int funits, const int box_units, 
                       const double cellpar, const double* unitpos, 
                       const int natoms, double* pos, double* vel ) 
 {
   const int fd = funits * 3;
-  const int bfd = box_side * fd;
-  const int bbfd = box_side * bfd;
+  const int bfd = box_units * fd;
+  const int bbfd = box_units * bfd;
 
   double vxtmp = 0.;
   double vytmp = 0.;
   double vztmp = 0.;
-  for ( int i = 0; i < box_side; i++ ) {
-    for ( int j = 0; j < box_side; j++ ) {
-      for ( int k = 0; k < box_side; k++ ) {
+  for ( int i = 0; i < box_units; i++ ) {
+    for ( int j = 0; j < box_units; j++ ) {
+      for ( int k = 0; k < box_units; k++ ) {
         for ( int l = 0; l < funits; l++ ) {
           const int idx = i * bbfd + j * bfd + k * fd + l * 3;
           // positions
