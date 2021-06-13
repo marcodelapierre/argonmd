@@ -35,6 +35,10 @@ Lennard Jones solid with velocity Verlet integrator
 * Object-Oriented (far future)
 
 
+### Extras
+* The `examples_lammps` directory contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from **Argonmd** with those from LAMMPS
+
+
 ### Credits
 * Some parts of the code were inspired by code in [Mantevo miniMD](https://github.com/Mantevo/miniMD)
-* Parameter values were taken by the `examples/UNITS` in [LAMMPS](https://github.com/lammps/lammps)
+* Parameter values were taken by `examples/UNITS/` in [LAMMPS](https://github.com/lammps/lammps)
