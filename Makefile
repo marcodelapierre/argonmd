@@ -1,6 +1,6 @@
 CXX = g++
 #CXXFLAGS = -O3
-CXXFLAGS = -g -O0 # -Wall -fbounds-check
+CXXFLAGS = -g -O0 -std=c++11 # -Wall -fbounds-check
 
 
 CPP_FILES = $(wildcard *.cpp)

@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cmath>
+#include <ctime>
 //#include <iomanip> // test only
 
 using namespace std;
@@ -14,7 +15,7 @@ void get_forc_epot( const double* const, const int, const int, const int* const,
                     const double, const double, const double, const double, double*, double& );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
-void print_arr( const double* const, const int );
+void print_arr( const double* const, const int, const int );
 void print_info ( const double, const double, const int, const double, const double, const double );
 
 
@@ -30,10 +31,10 @@ int main() {
 // Input parameters - might become editable by input
 const int box_units = 4; // no of unit cells per dimension in the simulation box
 const int nsteps = 200000;
+const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
+const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 const int nthermo = 1000; // print thermo info every these steps
 const int ndump = 1000; // dump structure every these steps
-const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
@@ -109,7 +110,7 @@ get_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
 
 
 // Get debug prints
-if ( 1 ) { print_arr( pos, natoms ); print_arr( vel, natoms ); }
+if ( 1 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); }
 if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
@@ -127,9 +128,14 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 // integrate positions and velocities #3
 
 // compute and print output when required #4
+// add timer for time loop #5
+//clock_t start, watch;
+//start = clock();
+//watch = clock() - start;
+// to print time: ((float)watch)/CLOCKS_PER_SEC
 
-// dump xyz (optional) #5
-// add timer for time loop #6
+
+// dump xyz (optional) #6
 
 
 
@@ -410,10 +416,10 @@ double random(int* idum)
 
 
 // Generic function to print arrays
-void print_arr( const double* const arr, const int natoms ) 
+void print_arr( const double* const arr, const int istart, const int istop ) 
 {
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
-  for ( int i = 0; i < natoms; i++) {
+  for ( int i = istart; i < istop; i++) {
     printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
   }
 
@@ -431,8 +437,8 @@ void print_info ( const double cellpar, const double boxlen,
   cout << "N_atoms : " << natoms << endl;
   cout << "Temp[K] : " << temp << endl;
   cout << "E_kin[eV] : " << ekin << endl;
-  cout << "E_pot : " << epot << endl;
-  cout << "E_tot : " << ekin + epot << endl;
+  cout << "E_pot[eV] : " << epot << endl;
+  cout << "E_tot[eV] : " << ekin + epot << endl;
 
   return;
 }
