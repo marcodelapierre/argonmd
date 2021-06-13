@@ -55,8 +55,11 @@ const double N_av = 6.02214129e23; // mol-1
 const double J_eV = 1.602177e-19; // this is q_e
 //
 // Model parameters
-const double step = 0.001; // ps
+const double dt = 0.001; // ps
+const double hdt = 0.5 * dt;
+const double hdtsq = 0.5 * dt * dt;
 const double mass = 39.95; // gram/mol (also amu)
+const double imass = 1.0 / mass;
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
 const double sigma = 3.504; // angstrom
@@ -71,8 +74,10 @@ const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
-const double ekin_scale = 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD)
-const double temp_scale = ekin_scale / ( N_dof * k_B );
+const double ekin_scale = 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
+const double temp_scale = ekin_scale / ( N_dof * k_B ); // [from my notes]
+const double forc_scale = 9648.536; // this factor is needed when using metal units [from my notes]
+const double forc_fac = forc_scale * hdtsq;
 
 
 // Allocate arrays
@@ -82,10 +87,12 @@ double* pos = new double [ natoms * 3 ];
 double* posraw = new double [ natoms * 3 ];
 double* vel = new double [ natoms * 3 ];
 double* forc = new double [ natoms * 3 ];
+double* forcold = new double [ natoms * 3 ];
 
-// Define simulation variables
-double temp, ekin, epot;
-int istep = 0;
+// Define variables and pointers
+double temp, ekin, epot, clocktime;
+clock_t start, watch;
+double* forctmp;
 
 
 // Define structure and initialise velocities
@@ -110,37 +117,84 @@ if ( 1 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); }
 if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
-
-// big loop: time evolution #3
-
+// print initial thermo output #4
 
 
-// integrate N-body system #3
 
-// PBC check
-//check_pbc( pos, natoms, boxlen );
+
+// Time evolution loop #3
+// note that this implies Velocity Verlet integrator
+start = clock();
+for (int istep = 1; istep < nsteps; istep++) {
+
+
+// CHECK THIS LOOP!! I WAS SOOO SLEEPY!!
+
+
+// Update positions and check PBC meanwhile
+for ( int i = 0; i < natoms; i++ ) {
+  double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_fac * imass;
+  double x = pos[ 3 * i + 0 ] + dx;
+  if ( x >= boxlen ) { x -= boxlen; }
+  if ( x < 0. )      { x += boxlen; }
+  pos[ 3 * i + 0 ] = x;
+  posraw[ 3 * i + 0 ] += dx;
+
+  double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_fac * imass;
+  double y = pos[ 3 * i + 1 ] + dy;
+  if ( y >= boxlen ) { y -= boxlen; }
+  if ( y < 0. )      { y += boxlen; }
+  pos[ 3 * i + 1 ] = y;
+  posraw[ 3 * i + 1 ] += dy;
+
+  double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_fac * imass;
+  double z = pos[ 3 * i + 2 ] + dz;
+  if ( z >= boxlen ) { z -= boxlen; }
+  if ( z < 0. )      { z += boxlen; }
+  pos[ 3 * i + 2 ] = z;
+  posraw[ 3 * i + 2 ] += dz;
+}
+
 // Update (full) neighbour list
-//if( ( istep > 0 ) && ( istep%nneighupd == 0 ) ) { get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh ); }
+if( istep%nneighupd == 0 ) { 
+  get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
+}
+
+// Store old forces and compute new forces
+forctmp = oldforc;
+oldforc = forc;
+forc = forctmp;
+get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
+               boxlen, cutsq, sigma6, eps, forc, epot );
+
+// Update velocities
+for ( int i = 0; i < natoms; i++ ) {
+  vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * hdt;
+  vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * hdt;
+  vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * hdt;
+}
+
+// Get clock time
+watch = clock() - start;
+clocktime = ((float)watch)/CLOCKS_PER_SEC;
 
 
+// print thermo output when required #4
+// if ( istep%nthermo ) {
+// 
+// }
 
 
+// dump xyz (optional) #5
+// if ( istep%ndump ) {
+// 
+// }
 
-
-// compute and print output when required #4
-// add timer for time loop #5
-//clock_t start, watch;
-//start = clock();
-//watch = clock() - start;
-// to print time: ((float)watch)/CLOCKS_PER_SEC
-
-// dump xyz (optional) #6
-
-
-
+}
 
 
 // deallocate arrays
+delete [] forcold;
 delete [] forc;
 delete [] vel;
 delete [] posraw;
