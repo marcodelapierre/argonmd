@@ -10,8 +10,8 @@ Lennard Jones solid with velocity Verlet integrator
   * Homo-atomic Argon system
     * implies single mass value, single set of force-field parameters
   * Condensed phase
-  * Starting structure is the equilibrium *fcc* lattice
-  * Cubic box as supercell of crystal faced-centered cubic (*fcc*) unit cell
+  * Starting structure is the equilibrium faced-centered cubic (*fcc*) lattice
+  * Cubic box as supercell of crystal *fcc* unit cell
   * Three-dimensional (3D) periodic boundary conditions (PBC)
   * NVE ensemble (constant Number of particles, Volume and total Energy)
   * Lennard-Jones (*lj*) pairwise interactions, with distance cut-off
@@ -20,7 +20,7 @@ Lennard Jones solid with velocity Verlet integrator
   * *Metal* physical units from LAMMPS
   * Velocity Verlet integrator
   * Full neighbour list
-  * Only wrapped spatial coordinates are saved (**for now**)
+  * Both raw and PBC-wrapped spatial coordinates are saved
 
 
 ### To-do List

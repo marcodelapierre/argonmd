@@ -5,7 +5,7 @@
 using namespace std;
 
 // function headers
-void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double* );
+void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
 void get_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 void check_pbc( double*, const int, const double );
@@ -78,6 +78,7 @@ const double temp_scale = ekin_scale / ( N_dof * k_B );
 int* numneigh = new int [ natoms ];
 int* neigh = new int [ natoms * maxneigh ];
 double* pos = new double [ natoms * 3 ];
+double* posraw = new double [ natoms * 3 ];
 double* vel = new double [ natoms * 3 ];
 double* forc = new double [ natoms * 3 ];
 
@@ -87,7 +88,7 @@ int istep = 0;
 
 
 // Define structure and initialise velocities
-setup_struc_vel( funits, box_units, cellpar, unitpos, natoms, pos, vel );
+setup_struc_vel( funits, box_units, cellpar, unitpos, natoms, pos, posraw, vel );
 // Rescale to desired temperature
 get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 rescale_temp( vel, natoms, temp_ini, temp, ekin );
@@ -137,6 +138,7 @@ if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 // deallocate arrays
 delete [] forc;
 delete [] vel;
+delete [] posraw;
 delete [] pos;
 delete [] neigh;
 delete [] numneigh;
@@ -151,7 +153,7 @@ return 0;
 // note that this implies 3D PBC
 void setup_struc_vel( const int funits, const int box_units, 
                       const double cellpar, const double* unitpos, 
-                      const int natoms, double* pos, double* vel ) 
+                      const int natoms, double* pos, double* posraw, double* vel ) 
 {
   const int fd = funits * 3;
   const int bfd = box_units * fd;
@@ -169,6 +171,9 @@ void setup_struc_vel( const int funits, const int box_units,
           pos[ idx + 0 ] = cellpar*i + unitpos[ 3 * l + 0 ];
           pos[ idx + 1 ] = cellpar*j + unitpos[ 3 * l + 1 ];
           pos[ idx + 2 ] = cellpar*k + unitpos[ 3 * l + 2 ];
+          posraw[ idx + 0 ] = cellpar*i + unitpos[ 3 * l + 0 ];
+          posraw[ idx + 1 ] = cellpar*j + unitpos[ 3 * l + 1 ];
+          posraw[ idx + 2 ] = cellpar*k + unitpos[ 3 * l + 2 ];
           //cout << left << setw(8) << pos[idx+0] << setw(8) << pos[idx+1] << setw(8) << pos[idx+2] << endl ; // test only
           //cout << idx << endl; // test only
   
