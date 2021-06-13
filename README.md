@@ -7,18 +7,20 @@ Lennard Jones solid with velocity Verlet integrator
 ### Assumptions
 
 * Physical model
-  * *Metal* units from LAMMPS
   * Homo-atomic Argon system
     * implies single mass value, single set of force-field parameters
-  * Three-dimensional (3D) periodic boundary conditions (PBC)
   * Condensed phase
-  * Starting structure is the equilibrium faced-centered cubic (*fcc*) lattice
+  * Starting structure is the equilibrium *fcc* lattice
+  * Cubic box as supercell of crystal faced-centered cubic (*fcc*) unit cell
+  * Three-dimensional (3D) periodic boundary conditions (PBC)
   * NVE ensemble (constant Number of particles, Volume and total Energy)
   * Lennard-Jones (*lj*) pairwise interactions, with distance cut-off
 
-* Algorithms
+* Algorithmic aspects
+  * *Metal* physical units from LAMMPS
   * Velocity Verlet integrator
   * Full neighbour list
+  * Only wrapped spatial coordinates are saved (**for now**)
 
 
 ### To-do List
@@ -29,6 +31,7 @@ Lennard Jones solid with velocity Verlet integrator
   * OpenMP GPU offloading
   * CUDA
   * HIP
+  * MPI
 * Object Oriented (far future)
 
 
