@@ -1,4 +1,4 @@
-## Argonmd
+## ArgonMD
 
 Training code: Molecular Dynamics  
 Lennard Jones solid with velocity Verlet integrator
@@ -36,7 +36,7 @@ Lennard Jones solid with velocity Verlet integrator
 
 
 ### Extras
-* The `examples_lammps` directory contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from **Argonmd** with those from LAMMPS
+* The `examples_lammps` directory contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from **ArgonMD** with those from LAMMPS
 
 
 ### Credits
