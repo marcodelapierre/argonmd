@@ -13,8 +13,8 @@ variable        dt index 0.005
 variable        cutoff index 2.5
 variable        skin index 0.3
 variable        tinitial index 1.0
-variable        nthermo index 10
-variable        nsteps index 100
+variable        nthermo index 1
+variable        nsteps index 5
 
 # physical constants from update.cpp
 
@@ -132,13 +132,22 @@ timestep	0.001 # $(v_dt*v_tscale)
 # columns 5-9 = temp,energy.press in reduced units, compare to in.ar.lj
 # need to include metal unit output to enable use of reduced variables
 
+# print info for atom 1
+group one id 1
+1 atoms in group one
+dump 1 one custom 1 "atom1.dat" x y z vx vy vz fx fy fz
+dump_modify 1 format line "%+16.8E %+16.8E %+16.8E %+16.8E %+16.8E %+16.8E %+16.8E %+16.8E %+16.8E"
+
 thermo_style    custom step time temp ke pe etotal press cpu
 thermo_modify	norm yes
 thermo		${nthermo}
-thermo		10
+thermo		1
+
+# velocity Verlet, just to be sure (should be default)
+run_style verlet
 
 run		${nsteps}
-run		100
+run		5
 Neighbor list info ...
   update every 20 steps, delay 0 steps, check no
   max neighbors/atom: 2000, page size: 100000
@@ -151,33 +160,28 @@ Neighbor list info ...
       pair build: half/bin/atomonly/newton
       stencil: half/bin/3d/newton
       bin: standard
-Per MPI rank memory allocation (min/avg/max) = 2.643 | 2.643 | 2.643 Mbytes
+Per MPI rank memory allocation (min/avg/max) = 3.893 | 3.893 | 3.893 Mbytes
 Step Time Temp KinEng PotEng TotEng Press CPU 
        0            0           10 0.0012900162 -0.072045884 -0.070755867   -2239.5453            0 
-      10         0.01    9.9821591 0.0012877147 -0.072043582 -0.070755867   -2239.0528 0.0020270348 
-      20         0.02     9.928741 0.0012808237 -0.072036691 -0.070755867   -2237.5791 0.0048091412 
-      30         0.03     9.840072 0.0012693853 -0.072025253 -0.070755867   -2235.1353 0.0074920654 
-      40         0.04    9.7167095 0.0012534713 -0.072009339 -0.070755867   -2231.7398  0.010923147 
-      50         0.05    9.5594485 0.0012331844 -0.071989052 -0.070755867   -2227.4187  0.013603926 
-      60         0.06    9.3693308 0.0012086589 -0.071964526 -0.070755867    -2222.206  0.016973972 
-      70         0.07    9.1476556 0.0011800624 -0.071935929 -0.070755867   -2216.1431  0.019652128 
-      80         0.08    8.8959913 0.0011475973 -0.071903464 -0.070755867   -2209.2793  0.023093939 
-      90         0.09    8.6161861  0.001111502 -0.071867369 -0.070755867   -2201.6717   0.02580595 
-     100          0.1    8.3103781 0.0010720523 -0.071827919 -0.070755866   -2193.3851  0.029175997 
-Loop time of 0.0291791 on 1 procs for 100 steps with 500 atoms
+       1        0.001    9.9998215 0.0012899932 -0.072045861 -0.070755867   -2239.5403 0.00044703484 
+       2        0.002    9.9992861 0.0012899241 -0.072045791 -0.070755867   -2239.5255 0.00085496902 
+       3        0.003    9.9983937  0.001289809 -0.072045676 -0.070755867   -2239.5009 0.0012660027 
+       4        0.004    9.9971444 0.0012896479 -0.072045515 -0.070755867   -2239.4664 0.0016729832 
+       5        0.005    9.9955383 0.0012894407 -0.072045308 -0.070755867   -2239.4221 0.0020391941 
+Loop time of 0.0020411 on 1 procs for 5 steps with 500 atoms
 
-Performance: 296.102 ns/day, 0.081 hours/ns, 3427.111 timesteps/s
-109.7% CPU use with 1 MPI tasks x no OpenMP threads
+Performance: 211.650 ns/day, 0.113 hours/ns, 2449.658 timesteps/s
+196.0% CPU use with 1 MPI tasks x no OpenMP threads
 
 MPI task timing breakdown:
 Section |  min time  |  avg time  |  max time  |%varavg| %total
 ---------------------------------------------------------------
-Pair    | 0.023976   | 0.023976   | 0.023976   |   0.0 | 82.17
-Neigh   | 0.0036192  | 0.0036192  | 0.0036192  |   0.0 | 12.40
-Comm    | 0.00087094 | 0.00087094 | 0.00087094 |   0.0 |  2.98
-Output  | 6.7234e-05 | 6.7234e-05 | 6.7234e-05 |   0.0 |  0.23
-Modify  | 0.00047302 | 0.00047302 | 0.00047302 |   0.0 |  1.62
-Other   |            | 0.0001724  |            |       |  0.59
+Pair    | 0.0017722  | 0.0017722  | 0.0017722  |   0.0 | 86.82
+Neigh   | 0          | 0          | 0          |   0.0 |  0.00
+Comm    | 4.2439e-05 | 4.2439e-05 | 4.2439e-05 |   0.0 |  2.08
+Output  | 0.0001862  | 0.0001862  | 0.0001862  |   0.0 |  9.12
+Modify  | 2.5749e-05 | 2.5749e-05 | 2.5749e-05 |   0.0 |  1.26
+Other   |            | 1.454e-05  |            |       |  0.71
 
 Nlocal:    500 ave 500 max 500 min
 Histogram: 1 0 0 0 0 0 0 0 0 0
@@ -188,7 +192,7 @@ Histogram: 1 0 0 0 0 0 0 0 0 0
 
 Total # of neighbors = 19500
 Ave neighs/atom = 39
-Neighbor list builds = 5
+Neighbor list builds = 0
 Dangerous builds not checked
 
 Total wall time: 0:00:00
