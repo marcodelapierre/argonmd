@@ -16,8 +16,8 @@ void get_forc_epot( const double* const, const int, const int, const int* const,
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
-void print_info ( const int, const int, const double, const int, const int, const int, const double, const double, const int, const double );
-
+void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const int, const double );
+void print_thermo( const int, const double, const double, const double, const double, const double, const double );
 
 
 
@@ -29,11 +29,11 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 10;
-const int box_units = 4; // no of unit cells per dimension in the simulation box
+const int nsteps = 2000;
+const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 1; // print thermo info every these steps
+const int nthermo = 1000; // print thermo info every these steps
 const int ndump = 1000; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
@@ -92,6 +92,7 @@ double* forcold = new double [ natoms * 3 ];
 
 // Define variables and pointers
 double temp, ekin, epot, clocktime;
+int istep = 0;
 clock_t start, watch;
 double* forctmp;
 
@@ -118,24 +119,19 @@ get_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
 
 
 // Print simulation info and initial thermo
-if ( 0 ) { cout << endl; print_arr( pos, 0, natoms ); cout << endl; print_arr( vel, 0, natoms ); } // debug print
 print_info( nsteps, box_units, temp_ini, nneighupd, nthermo, ndump, cellpar, boxlen, natoms, dt );
+if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
+
+// Print initial thermo output
+cout << endl;
+printf(" %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp[K]", "Ekin[eV]", "Epot[eV]", "Etot[eV]", "Clock[s]" );
+print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
 
 
-
-// print initial thermo output #4
-
-
-
-
-// Time evolution loop #3
+// Time evolution loop
 // note that this implies Velocity Verlet integrator
 start = clock();
-for (int istep = 1; istep < nsteps; istep++) {
-
-
-// CHECK THIS LOOP!! I WAS SOOO SLEEPY!!
-
+for (istep = 1; istep <= nsteps; istep++) {
 
 // Update positions and check PBC meanwhile
 for ( int i = 0; i < natoms; i++ ) {
@@ -162,7 +158,7 @@ for ( int i = 0; i < natoms; i++ ) {
 }
 
 // Update (full) neighbour list
-if( istep%nneighupd == 0 ) { 
+if( nneighupd > 0 && istep%nneighupd == 0 ) { 
   get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
 }
 
@@ -181,7 +177,7 @@ for ( int i = 0; i < natoms; i++ ) {
 }
 
 // Compute temperature when required
-if ( istep%nthermo ) {
+if ( nthermo > 0 && istep%nthermo == 0 ) {
   get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 }
 
@@ -189,16 +185,13 @@ if ( istep%nthermo ) {
 watch = clock() - start;
 clocktime = ((float)watch)/CLOCKS_PER_SEC;
 
+// Print thermo output when required
+if ( nthermo > 0 && istep%nthermo == 0 ) {
+  print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
+}
 
-// print thermo output when required #4
-// if ( istep%nthermo ) {
-//   
-//   
-// }
-
-
-// dump xyz (optional) #5
-// if ( istep%ndump ) {
+// Dump atomic coordinates when required
+// if ( ndump > 0 && istep%ndump == 0 ) {
 // 
 // }
 
@@ -486,6 +479,7 @@ double random(int* idum)
 // Generic function to print arrays
 void print_arr( const double* const arr, const int istart, const int istop ) 
 {
+  cout << endl;
   printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
   for ( int i = istart; i < istop; i++) {
     printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
@@ -495,7 +489,7 @@ void print_arr( const double* const arr, const int istart, const int istop )
 }
 
 
-// Print information on simulation model
+// Print information on simulation
 void print_info ( const int nsteps, const int box_units, const double temp_ini, 
                   const int nneighupd, const int nthermo, const int ndump, 
                   const double cellpar, const double boxlen, const int natoms, const double dt ) 
@@ -512,6 +506,18 @@ void print_info ( const int nsteps, const int box_units, const double temp_ini,
   cout << " Box Length [Ang] : " << boxlen << endl;
   cout << " No. Atoms : " << natoms << endl;
   cout << " Time Step [ps] : " << dt << endl;
+
+  return;
+}
+
+
+// Print thermodynamic information
+void print_thermo( const int istep, const double time, 
+                   const double temp, const double ekin, const double epot, 
+                   const double etot, const double clock ) 
+{
+  printf(" %9i  %10.3f  %8.3f  %+12.9f  %+12.9f  %+12.9f  %10.3f\n", 
+         istep, time, temp, ekin, epot, etot, clock );
 
   return;
 }
