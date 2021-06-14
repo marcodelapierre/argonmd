@@ -79,9 +79,9 @@ const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
-const double ekin_scale = 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
+const double ekin_scale = 10.0 / N_av / J_eV; // 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
 const double temp_scale = ekin_scale / ( N_dof * k_B ); // [from my notes]
-const double forc_scale = 9648.536; // this factor is needed when using metal units [from my notes]
+const double forc_scale = J_eV * N_av * 0.1; // 9648.536; // this factor is needed when using metal units [from my notes]
 const double forc_hdt_scale = forc_scale * hdt;
 const double forc_hdtsq_scale = forc_scale * hdtsq;
 
