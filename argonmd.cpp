@@ -13,6 +13,7 @@ void check_pbc( double*, const int, const double );
 void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
 void get_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
                     const double, const double, const double, const double, double*, double& );
+void update_vel( double*, const double* const, const double* const, const int, const double, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
@@ -29,11 +30,11 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 2000;
+const int nsteps = 100;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 1000; // print thermo info every these steps
+const int nthermo = 1; // print thermo info every these steps
 const int ndump = 1000; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
@@ -170,11 +171,7 @@ for (istep = 1; istep <= nsteps; istep++) {
                  boxlen, cutsq, sigma6, eps, forc, epot );
   
 // Update velocities
-  for ( int i = 0; i < natoms; i++ ) {
-    vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
-    vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
-    vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * forc_hdt_scale * imass;
-  }
+  update_vel ( vel, forcold, forc, natoms, forc_hdt_scale, imass );
   
 // Compute temperature when required
   if ( nthermo > 0 && istep%nthermo == 0 ) {
@@ -441,6 +438,19 @@ void get_forc_epot( const double* const pos, const int natoms,
   // normalise by natoms to compare with LAMMPS
   
   return;
+}
+
+
+// Update velocities
+// note that this implies Velocity Verlet integration
+void update_vel( double* vel, const double* const forcold, const double* const forc, 
+                 const int natoms, const double forc_hdt_scale, const double imass ) 
+{
+  for ( int i = 0; i < natoms; i++ ) {
+    vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
+    vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
+    vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * forc_hdt_scale * imass;
+  }
 }
 
 
