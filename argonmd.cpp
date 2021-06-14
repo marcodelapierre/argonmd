@@ -33,11 +33,11 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 100;
+const int nsteps = 1000;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 1; // print thermo info every these steps
+const int nthermo = 100; // print thermo info every these steps
 const int ndump = 0; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
@@ -365,6 +365,7 @@ void get_neigh( const double* const pos, const int natoms,
 
 // Compute forces and potential energy
 // Note that this implies 3D PBC
+// Test against LAMMPS successful! (forces and accelerations)
 void get_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
                     const double boxlen, const double boxhalf, const double cutsq, 
@@ -535,7 +536,7 @@ void print_thermo( const int istep, const double time,
                    const double temp, const double ekin, const double epot, 
                    const double etot, const double clock ) 
 {
-  printf(" %9i  %10.3f  %8.3f  %+12.9f  %+12.9f  %+12.9f  %10.3f\n", 
+  printf(" %9i  %10.3F  %8.3F  %+12.9F  %+12.9F  %+12.9F  %10.3F\n", 
          istep, time, temp, ekin, epot, etot, clock );
 
   return;
