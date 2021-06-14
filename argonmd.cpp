@@ -101,7 +101,6 @@ int istep = 0;
 clock_t start, watch;
 double* forctmp;
 
-
 // Print program header
 cout << endl;
 cout << "** ArgonMD ** " << endl;
@@ -122,7 +121,6 @@ get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
-
 // Print simulation info and initial thermo
 print_info( nsteps, box_units, temp_ini, nneighupd, nthermo, ndump, cellpar, boxlen, natoms, dt );
 if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
@@ -134,7 +132,7 @@ print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natom
 
 
 // Time evolution loop
-// note that this implies Velocity Verlet integrator
+// Note that this implies Velocity Verlet integrator
 start = clock();
 for (istep = 1; istep <= nsteps; istep++) {
   
@@ -178,7 +176,7 @@ for (istep = 1; istep <= nsteps; istep++) {
 }
 
 
-// deallocate arrays
+// Deallocate arrays
 delete [] forcold;
 delete [] forc;
 delete [] vel;
@@ -194,7 +192,7 @@ return 0;
 
 
 // Define structure and initialise velocities
-// note that this implies 3D PBC
+// Note that this implies 3D PBC
 void setup_struc_vel( const int funits, const int box_units, 
                       const double cellpar, const double* unitpos, 
                       const int natoms, double* pos, double* posraw, double* vel ) 
@@ -294,7 +292,7 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 
 
 // Check periodic boundary conditions
-// note that this implies 3D PBC
+// Note that this implies 3D PBC
 void check_pbc( double* pos, const int natoms, const double boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
@@ -316,7 +314,7 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 
 
 // Build full neighbour list
-// note that this implies 3D PBC
+// Note that this implies 3D PBC
 void get_neigh( const double* const pos, const int natoms, 
                 const double boxlen, const double boxhalf, const double cutskinsq, 
                 const int maxneigh, int* numneigh, int* neigh ) 
@@ -366,7 +364,7 @@ void get_neigh( const double* const pos, const int natoms,
 
 
 // Compute forces and potential energy
-// note that this implies 3D PBC
+// Note that this implies 3D PBC
 void get_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
                     const double boxlen, const double boxhalf, const double cutsq, 
@@ -453,7 +451,7 @@ void update_pos_pbc( double* pos, double* posraw, const double* const vel, const
 
 
 // Update velocities
-// note that this implies Velocity Verlet integrator
+// Note that this implies Velocity Verlet integrator
 void update_vel( double* vel, const double* const forcold, const double* const forc, 
                  const int natoms, const double forc_hdt_scale, const double imass ) 
 {
