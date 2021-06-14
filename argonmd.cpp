@@ -13,6 +13,9 @@ void check_pbc( double*, const int, const double );
 void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
 void get_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
                     const double, const double, const double, const double, double*, double& );
+void update_pos_pbc( double*, double*, const double* const, const double* const, 
+                     const int, const double, const double, 
+                     const double, const double );
 void update_vel( double*, const double* const, const double* const, const int, const double, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
@@ -30,12 +33,12 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 100;
+const int nsteps = 3;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 const int nthermo = 1; // print thermo info every these steps
-const int ndump = 1000; // dump structure every these steps
+const int ndump = 0; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
@@ -135,28 +138,7 @@ start = clock();
 for (istep = 1; istep <= nsteps; istep++) {
   
 // Update positions and check PBC meanwhile
-  for ( int i = 0; i < natoms; i++ ) {
-    double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
-    double x = pos[ 3 * i + 0 ] + dx;
-    if ( x >= boxlen ) { x -= boxlen; }
-    if ( x < 0. )      { x += boxlen; }
-    pos[ 3 * i + 0 ] = x;
-    posraw[ 3 * i + 0 ] += dx;
-  
-    double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
-    double y = pos[ 3 * i + 1 ] + dy;
-    if ( y >= boxlen ) { y -= boxlen; }
-    if ( y < 0. )      { y += boxlen; }
-    pos[ 3 * i + 1 ] = y;
-    posraw[ 3 * i + 1 ] += dy;
-  
-    double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
-    double z = pos[ 3 * i + 2 ] + dz;
-    if ( z >= boxlen ) { z -= boxlen; }
-    if ( z < 0. )      { z += boxlen; }
-    pos[ 3 * i + 2 ] = z;
-    posraw[ 3 * i + 2 ] += dz;
-  }
+  update_pos_pbc( pos, posraw, vel, forc, natoms, dt, forc_hdtsq_scale, imass, boxlen );
   
 // Update (full) neighbour list
   if( nneighupd > 0 && istep%nneighupd == 0 ) { 
@@ -171,7 +153,7 @@ for (istep = 1; istep <= nsteps; istep++) {
                  boxlen, cutsq, sigma6, eps, forc, epot );
   
 // Update velocities
-  update_vel ( vel, forcold, forc, natoms, forc_hdt_scale, imass );
+  update_vel( vel, forcold, forc, natoms, forc_hdt_scale, imass );
   
 // Compute temperature when required
   if ( nthermo > 0 && istep%nthermo == 0 ) {
@@ -188,9 +170,9 @@ for (istep = 1; istep <= nsteps; istep++) {
   }
   
 // Dump atomic coordinates when required
-// if ( ndump > 0 && istep%ndump == 0 ) {
-// 
-// }
+//   if ( ndump > 0 && istep%ndump == 0 ) {
+//   
+//   }
   
 }
 
@@ -441,8 +423,38 @@ void get_forc_epot( const double* const pos, const int natoms,
 }
 
 
+// Update positions and check PBC meanwhile
+void update_pos_pbc( double* pos, double* posraw, const double* const vel, const double* const forc, 
+                     const int natoms, const double dt, const double forc_hdtsq_scale, 
+                     const double imass, const double boxlen ) 
+{
+  for ( int i = 0; i < natoms; i++ ) {
+    double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
+    double x = pos[ 3 * i + 0 ] + dx;
+    if ( x >= boxlen ) { x -= boxlen; }
+    if ( x < 0. )      { x += boxlen; }
+    pos[ 3 * i + 0 ] = x;
+    posraw[ 3 * i + 0 ] += dx;
+  
+    double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
+    double y = pos[ 3 * i + 1 ] + dy;
+    if ( y >= boxlen ) { y -= boxlen; }
+    if ( y < 0. )      { y += boxlen; }
+    pos[ 3 * i + 1 ] = y;
+    posraw[ 3 * i + 1 ] += dy;
+  
+    double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
+    double z = pos[ 3 * i + 2 ] + dz;
+    if ( z >= boxlen ) { z -= boxlen; }
+    if ( z < 0. )      { z += boxlen; }
+    pos[ 3 * i + 2 ] = z;
+    posraw[ 3 * i + 2 ] += dz;
+  }
+}
+
+
 // Update velocities
-// note that this implies Velocity Verlet integration
+// note that this implies Velocity Verlet integrator
 void update_vel( double* vel, const double* const forcold, const double* const forc, 
                  const int natoms, const double forc_hdt_scale, const double imass ) 
 {
