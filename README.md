@@ -25,8 +25,9 @@ Lennard Jones solid with velocity Verlet integrator
 
 ### To-Do List
 * Optional input parameters
-* Optional dumping of spatial coordinates
+* Optional dumping of atomic coordinates
 * Multi-file code base
+* Feedback from peers
 * Parallel implementations
   * OpenMP multi-threaded
   * OpenMP GPU offloading
