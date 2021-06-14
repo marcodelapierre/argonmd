@@ -77,7 +77,8 @@ const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (diffe
 const double ekin_scale = 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
 const double temp_scale = ekin_scale / ( N_dof * k_B ); // [from my notes]
 const double forc_scale = 9648.536; // this factor is needed when using metal units [from my notes]
-const double forc_fac = forc_scale * hdtsq;
+const double forc_hdt_scale = forc_scale * hdt;
+const double forc_hdtsq_scale = forc_scale * hdtsq;
 
 
 // Allocate arrays
@@ -133,21 +134,21 @@ for (int istep = 1; istep < nsteps; istep++) {
 
 // Update positions and check PBC meanwhile
 for ( int i = 0; i < natoms; i++ ) {
-  double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_fac * imass;
+  double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
   double x = pos[ 3 * i + 0 ] + dx;
   if ( x >= boxlen ) { x -= boxlen; }
   if ( x < 0. )      { x += boxlen; }
   pos[ 3 * i + 0 ] = x;
   posraw[ 3 * i + 0 ] += dx;
 
-  double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_fac * imass;
+  double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
   double y = pos[ 3 * i + 1 ] + dy;
   if ( y >= boxlen ) { y -= boxlen; }
   if ( y < 0. )      { y += boxlen; }
   pos[ 3 * i + 1 ] = y;
   posraw[ 3 * i + 1 ] += dy;
 
-  double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_fac * imass;
+  double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
   double z = pos[ 3 * i + 2 ] + dz;
   if ( z >= boxlen ) { z -= boxlen; }
   if ( z < 0. )      { z += boxlen; }
@@ -169,9 +170,14 @@ get_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
 
 // Update velocities
 for ( int i = 0; i < natoms; i++ ) {
-  vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * hdt;
-  vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * hdt;
-  vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * hdt;
+  vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
+  vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
+  vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * forc_hdt_scale * imass;
+}
+
+// Compute temperature when required
+if ( istep%nthermo ) {
+  get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 }
 
 // Get clock time
@@ -181,7 +187,8 @@ clocktime = ((float)watch)/CLOCKS_PER_SEC;
 
 // print thermo output when required #4
 // if ( istep%nthermo ) {
-// 
+//   
+//   
 // }
 
 
@@ -421,10 +428,10 @@ void get_forc_epot( const double* const pos, const int natoms,
         const double irsq = 1.0 / rsq;
         const double isr6 = irsq * irsq * irsq * sigma6;
   
-        const double force_fac = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
-        fx += dx * force_fac;
-        fy += dy * force_fac;
-        fz += dz * force_fac;
+        const double force_factor = 48.0 * isr6 * (isr6 - 0.5) * irsq * eps;
+        fx += dx * force_factor;
+        fy += dy * force_factor;
+        fz += dz * force_factor;
         epot += isr6 * (isr6 - 1.0) * eps;
       }
     }
