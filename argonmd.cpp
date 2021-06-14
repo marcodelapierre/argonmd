@@ -10,9 +10,9 @@ void setup_struc_vel( const int, const int, const double, const double*, const i
 void get_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 void check_pbc( double*, const int, const double );
-void get_neigh( const double* const, const int, const double, const double, const int, int*, int* );
+void get_neigh( const double* const, const int, const double, const double, const double, const int, int*, int* );
 void get_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
-                    const double, const double, const double, const double, double*, double& );
+                    const double, const double, const double, const double, const double, double*, double& );
 void update_pos_pbc( double*, double*, const double* const, const double* const, 
                      const int, const double, const double, 
                      const double, const double );
@@ -33,7 +33,7 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 3;
+const int nsteps = 100;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
@@ -46,6 +46,7 @@ const int funits = 4;
 const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC
 const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
 const double boxlen = cellpar * box_units;
+const double boxhalf = boxlen * 0.5;
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
@@ -115,11 +116,11 @@ rescale_temp( vel, natoms, temp_ini, temp, ekin );
 // PBC check // not needed at startup with current input structure, yet here for generality
 check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
-get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
+get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
 
 // Compute initial forces
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-               boxlen, cutsq, sigma6, eps, forc, epot );
+               boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
 
 // Print simulation info and initial thermo
@@ -142,7 +143,7 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 // Update (full) neighbour list
   if( nneighupd > 0 && istep%nneighupd == 0 ) { 
-    get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
+    get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
   }
   
 // Store old forces and compute new forces
@@ -150,7 +151,7 @@ for (istep = 1; istep <= nsteps; istep++) {
   forcold = forc;
   forc = forctmp;
   get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-                 boxlen, cutsq, sigma6, eps, forc, epot );
+                 boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
   
 // Update velocities
   update_vel( vel, forcold, forc, natoms, forc_hdt_scale, imass );
@@ -316,11 +317,10 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 
 // Build full neighbour list
 // note that this implies 3D PBC
-void get_neigh( const double* const pos, const int natoms, const double boxlen, 
-                const double cutskinsq, const int maxneigh, 
-                int* numneigh, int* neigh ) 
+void get_neigh( const double* const pos, const int natoms, 
+                const double boxlen, const double boxhalf, const double cutskinsq, 
+                const int maxneigh, int* numneigh, int* neigh ) 
 {
-  const double boxhalf = boxlen * 0.5;
   for ( int i = 0; i < natoms; i++ ) {
     numneigh[ i ] = 0;
   }
@@ -369,11 +369,10 @@ void get_neigh( const double* const pos, const int natoms, const double boxlen,
 // note that this implies 3D PBC
 void get_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
-                    const double boxlen, const double cutsq, 
+                    const double boxlen, const double boxhalf, const double cutsq, 
                     const double sigma6, const double eps, 
                     double* forc, double& epot )
 {
-  const double boxhalf = boxlen * 0.5;
   epot = 0.;
   for ( int i = 0; i < natoms; i++ ) {
     const int* const neighs = &neigh[ i * maxneigh ];
