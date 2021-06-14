@@ -33,11 +33,11 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 1000;
+const int nsteps = 10000;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 100; // print thermo info every these steps
+const int nthermo = 1000; // print thermo info every these steps
 const int ndump = 0; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
