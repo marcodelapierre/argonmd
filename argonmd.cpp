@@ -162,8 +162,8 @@ if( istep%nneighupd == 0 ) {
 }
 
 // Store old forces and compute new forces
-forctmp = oldforc;
-oldforc = forc;
+forctmp = forcold;
+forcold = forc;
 forc = forctmp;
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, cutsq, sigma6, eps, forc, epot );
