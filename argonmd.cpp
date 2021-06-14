@@ -132,69 +132,69 @@ print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natom
 // note that this implies Velocity Verlet integrator
 start = clock();
 for (istep = 1; istep <= nsteps; istep++) {
-
+  
 // Update positions and check PBC meanwhile
-for ( int i = 0; i < natoms; i++ ) {
-  double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
-  double x = pos[ 3 * i + 0 ] + dx;
-  if ( x >= boxlen ) { x -= boxlen; }
-  if ( x < 0. )      { x += boxlen; }
-  pos[ 3 * i + 0 ] = x;
-  posraw[ 3 * i + 0 ] += dx;
-
-  double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
-  double y = pos[ 3 * i + 1 ] + dy;
-  if ( y >= boxlen ) { y -= boxlen; }
-  if ( y < 0. )      { y += boxlen; }
-  pos[ 3 * i + 1 ] = y;
-  posraw[ 3 * i + 1 ] += dy;
-
-  double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
-  double z = pos[ 3 * i + 2 ] + dz;
-  if ( z >= boxlen ) { z -= boxlen; }
-  if ( z < 0. )      { z += boxlen; }
-  pos[ 3 * i + 2 ] = z;
-  posraw[ 3 * i + 2 ] += dz;
-}
-
+  for ( int i = 0; i < natoms; i++ ) {
+    double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
+    double x = pos[ 3 * i + 0 ] + dx;
+    if ( x >= boxlen ) { x -= boxlen; }
+    if ( x < 0. )      { x += boxlen; }
+    pos[ 3 * i + 0 ] = x;
+    posraw[ 3 * i + 0 ] += dx;
+  
+    double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
+    double y = pos[ 3 * i + 1 ] + dy;
+    if ( y >= boxlen ) { y -= boxlen; }
+    if ( y < 0. )      { y += boxlen; }
+    pos[ 3 * i + 1 ] = y;
+    posraw[ 3 * i + 1 ] += dy;
+  
+    double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
+    double z = pos[ 3 * i + 2 ] + dz;
+    if ( z >= boxlen ) { z -= boxlen; }
+    if ( z < 0. )      { z += boxlen; }
+    pos[ 3 * i + 2 ] = z;
+    posraw[ 3 * i + 2 ] += dz;
+  }
+  
 // Update (full) neighbour list
-if( nneighupd > 0 && istep%nneighupd == 0 ) { 
-  get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
-}
-
+  if( nneighupd > 0 && istep%nneighupd == 0 ) { 
+    get_neigh( pos, natoms, boxlen, cutskinsq, maxneigh, numneigh, neigh );
+  }
+  
 // Store old forces and compute new forces
-forctmp = forcold;
-forcold = forc;
-forc = forctmp;
-get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-               boxlen, cutsq, sigma6, eps, forc, epot );
-
+  forctmp = forcold;
+  forcold = forc;
+  forc = forctmp;
+  get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
+                 boxlen, cutsq, sigma6, eps, forc, epot );
+  
 // Update velocities
-for ( int i = 0; i < natoms; i++ ) {
-  vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
-  vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
-  vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * forc_hdt_scale * imass;
-}
-
+  for ( int i = 0; i < natoms; i++ ) {
+    vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
+    vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
+    vel[ 3 * i + 2 ] += ( forcold[ 3 * i + 2 ] + forc[ 3 * i + 2 ] ) * forc_hdt_scale * imass;
+  }
+  
 // Compute temperature when required
-if ( nthermo > 0 && istep%nthermo == 0 ) {
-  get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
-}
-
+  if ( nthermo > 0 && istep%nthermo == 0 ) {
+    get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
+  }
+  
 // Get clock time
-watch = clock() - start;
-clocktime = ((float)watch)/CLOCKS_PER_SEC;
-
+  watch = clock() - start;
+  clocktime = ((float)watch)/CLOCKS_PER_SEC;
+  
 // Print thermo output when required
-if ( nthermo > 0 && istep%nthermo == 0 ) {
-  print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
-}
-
+  if ( nthermo > 0 && istep%nthermo == 0 ) {
+    print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, clocktime );
+  }
+  
 // Dump atomic coordinates when required
 // if ( ndump > 0 && istep%ndump == 0 ) {
 // 
 // }
-
+  
 }
 
 
