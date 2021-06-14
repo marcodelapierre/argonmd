@@ -313,6 +313,28 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 }
 
 
+// Check periodic boundary conditions
+// note that this implies 3D PBC
+void check_pbc( double* pos, const int natoms, const double boxlen ) 
+{
+  for ( int i = 0; i < natoms; i++ ) {
+    double x = pos[ 3 * i + 0 ];
+    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
+    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
+  
+    double y = pos[ 3 * i + 1 ];
+    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
+    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
+  
+    double z = pos[ 3 * i + 2 ];
+    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
+    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
+  }
+
+  return;
+}
+
+
 // Build full neighbour list
 // note that this implies 3D PBC
 void get_neigh( const double* const pos, const int natoms, const double boxlen, 
@@ -359,28 +381,6 @@ void get_neigh( const double* const pos, const int natoms, const double boxlen,
   // cout << "tot_nn = " << tot_nn << endl;
   // cout << "max_nn = " << max_nn << endl;
   // cout << "min_nn = " << min_nn << endl;
-
-  return;
-}
-
-
-// Check periodic boundary conditions
-// note that this implies 3D PBC
-void check_pbc( double* pos, const int natoms, const double boxlen ) 
-{
-  for ( int i = 0; i < natoms; i++ ) {
-    double x = pos[ 3 * i + 0 ];
-    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
-    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
-  
-    double y = pos[ 3 * i + 1 ];
-    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
-    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
-  
-    double z = pos[ 3 * i + 2 ];
-    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
-    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
-  }
 
   return;
 }
