@@ -24,6 +24,7 @@ Lennard Jones solid with velocity Verlet integrator
 
 
 ### To-Do List
+* Optional input parameters
 * Optional dumping of spatial coordinates
 * Multi-file code base
 * Parallel implementations
