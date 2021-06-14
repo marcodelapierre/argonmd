@@ -16,7 +16,7 @@ void get_forc_epot( const double* const, const int, const int, const int* const,
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
-void print_info ( const double, const double, const int, const double, const double, const double );
+void print_info ( const int, const int, const double, const int, const int, const int, const double, const double, const int, const double );
 
 
 
@@ -29,11 +29,11 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
+const int nsteps = 10;
 const int box_units = 4; // no of unit cells per dimension in the simulation box
-const int nsteps = 200000;
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 1000; // print thermo info every these steps
+const int nthermo = 1; // print thermo info every these steps
 const int ndump = 1000; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
@@ -96,6 +96,11 @@ clock_t start, watch;
 double* forctmp;
 
 
+// Print program header
+cout << endl;
+cout << "** ArgonMD ** " << endl;
+
+
 // Define structure and initialise velocities
 setup_struc_vel( funits, box_units, cellpar, unitpos, natoms, pos, posraw, vel );
 // Rescale to desired temperature
@@ -112,10 +117,10 @@ get_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
                boxlen, cutsq, sigma6, eps, forc, epot );
 
 
+// Print simulation info and initial thermo
+if ( 0 ) { cout << endl; print_arr( pos, 0, natoms ); cout << endl; print_arr( vel, 0, natoms ); } // debug print
+print_info( nsteps, box_units, temp_ini, nneighupd, nthermo, ndump, cellpar, boxlen, natoms, dt );
 
-// Get debug prints
-if ( 1 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); }
-if ( 1 ) { print_info( cellpar, boxlen, natoms, temp, ekin, epot ); }
 
 
 // print initial thermo output #4
@@ -491,17 +496,22 @@ void print_arr( const double* const arr, const int istart, const int istop )
 
 
 // Print information on simulation model
-void print_info ( const double cellpar, const double boxlen, 
-                  const int natoms, const double temp, 
-                  const double ekin, const double epot ) 
+void print_info ( const int nsteps, const int box_units, const double temp_ini, 
+                  const int nneighupd, const int nthermo, const int ndump, 
+                  const double cellpar, const double boxlen, const int natoms, const double dt ) 
 {
-  cout << "Cell_par[Ang] : " << cellpar << endl;
-  cout << "Box_len[Ang] : " << boxlen << endl;
-  cout << "N_atoms : " << natoms << endl;
-  cout << "Temp[K] : " << temp << endl;
-  cout << "E_kin[eV] : " << ekin << endl;
-  cout << "E_pot[eV] : " << epot << endl;
-  cout << "E_tot[eV] : " << ekin + epot << endl;
+  cout << endl;
+  cout << " No. Time Steps : " << nsteps << endl;
+  cout << " Box Units : " << box_units << endl;
+  cout << " Initial Temp [K] : " << temp_ini << endl;
+  cout << " Neigh Update Freq : " << nneighupd << endl;
+  cout << " Thermo Print Freq : " << nthermo << endl;
+  cout << " Coord Dump Freq : " << ndump << endl;
+  cout << endl;
+  cout << " Cell Par [Ang] : " << cellpar << endl;
+  cout << " Box Length [Ang] : " << boxlen << endl;
+  cout << " No. Atoms : " << natoms << endl;
+  cout << " Time Step [ps] : " << dt << endl;
 
   return;
 }
