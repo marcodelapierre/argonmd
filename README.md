@@ -23,18 +23,10 @@ Lennard Jones solid with velocity Verlet integrator
   * Saving both raw and PBC-wrapped atomic coordinates
 
 
-### To-Do List
+### To-Do
 * Optional input parameters (with refactoring of parameter definitions)
 * Optional dumping of atomic coordinates
-* Feedback from peers
 * Multi-file code base
-* Parallel implementations
-  * OpenMP multi-threaded
-  * OpenMP GPU offloading
-  * CUDA
-  * HIP
-  * MPI (ideally with domain decomposition for neighbour list)
-* Object-Oriented (far future)
 
 
 ### Extras
