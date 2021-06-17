@@ -23,10 +23,13 @@ Lennard Jones solid with velocity Verlet integrator
   * Saving both raw and PBC-wrapped atomic coordinates
 
 
+### Available Implementations
+* Serial, single source file
+
+
 ### To-Do
 * Optional input parameters (with refactoring of parameter definitions)
 * Optional dumping of atomic coordinates
-* Multi-file code base
 
 
 ### Extras
