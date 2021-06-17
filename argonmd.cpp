@@ -33,20 +33,20 @@ int main() {
 // force unit is eV/Ang
 //
 // Input parameters - might become editable by input
-const int nsteps = 10000;
 const int box_units = 5; // no of unit cells per dimension in the simulation box
+const int nsteps = 10000;
 const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
 const int nthermo = 1000; // print thermo info every these steps
-const int ndump = 0; // dump structure every these steps
+const int ndump = 1000; // dump structure every these steps
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
 const int funits = 4;
-const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC
+const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC // affected by input parameters
 const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
-const double boxlen = cellpar * box_units;
-const double boxhalf = boxlen * 0.5;
+const double boxlen = cellpar * box_units; // affected by input parameters
+const double boxhalf = boxlen * 0.5; // affected by input parameters
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
@@ -78,9 +78,9 @@ const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
 //
-const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities)
+const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities) // affected by input parameters
 const double ekin_scale = 10.0 / N_av / J_eV; // 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
-const double temp_scale = ekin_scale / ( N_dof * k_B ); // [from my notes]
+const double temp_scale = ekin_scale / ( N_dof * k_B ); // [from my notes] // affected by input parameters
 const double forc_scale = J_eV * N_av * 0.1; // 9648.536; // this factor is needed when using metal units [from my notes]
 const double forc_hdt_scale = forc_scale * hdt;
 const double forc_hdtsq_scale = forc_scale * hdtsq;
