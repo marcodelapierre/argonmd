@@ -20,7 +20,7 @@ void update_vel( double*, const double* const, const double* const, const int, c
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
-void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const int, const double );
+void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
 
 
@@ -122,7 +122,7 @@ get_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
                boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
 // Print simulation info and initial thermo
-print_info( nsteps, box_units, temp_ini, nneighupd, nthermo, ndump, cellpar, boxlen, natoms, dt );
+print_info( box_units, nsteps, temp_ini, nneighupd, nthermo, ndump, dt, cellpar, boxlen, natoms );
 if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
 
 // Print initial thermo output
@@ -510,22 +510,22 @@ void print_arr( const double* const arr, const int istart, const int istop )
 
 
 // Print information on simulation
-void print_info ( const int nsteps, const int box_units, const double temp_ini, 
+void print_info ( const int box_units, const int nsteps, const double temp_ini, 
                   const int nneighupd, const int nthermo, const int ndump, 
-                  const double cellpar, const double boxlen, const int natoms, const double dt ) 
+                  const double dt, const double cellpar, const double boxlen, const int natoms ) 
 {
   cout << endl;
-  cout << " No. Time Steps : " << nsteps << endl;
   cout << " Box Units : " << box_units << endl;
+  cout << " No. Time Steps : " << nsteps << endl;
   cout << " Initial Temp [K] : " << temp_ini << endl;
   cout << " Neigh Update Freq : " << nneighupd << endl;
   cout << " Thermo Print Freq : " << nthermo << endl;
   cout << " Coord Dump Freq : " << ndump << endl;
   cout << endl;
+  cout << " Time Step [ps] : " << dt << endl;
   cout << " Cell Par [Ang] : " << cellpar << endl;
   cout << " Box Length [Ang] : " << boxlen << endl;
   cout << " No. Atoms : " << natoms << endl;
-  cout << " Time Step [ps] : " << dt << endl;
 
   return;
 }

@@ -1,17 +1,17 @@
 
 ** ArgonMD ** 
 
- No. Time Steps : 100000
  Box Units : 5
+ No. Time Steps : 100000
  Initial Temp [K] : 10
  Neigh Update Freq : 20
  Thermo Print Freq : 1000
  Coord Dump Freq : 0
 
+ Time Step [ps] : 0.001
  Cell Par [Ang] : 5.795
  Box Length [Ang] : 28.975
  No. Atoms : 500
- Time Step [ps] : 0.001
 
       Step    Time[ps]   Temp[K]      Ekin[eV]      Epot[eV]      Etot[eV]    Clock[s]
          0       0.000    10.000  +0.001290016  -0.072045884  -0.070755867       0.000
