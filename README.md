@@ -1,7 +1,9 @@
 ## ArgonMD
 
-Training code (C++): Molecular Dynamics  
+Training code: Molecular Dynamics  
 Lennard Jones solid with velocity Verlet integrator  
+
+Written in C++  
 
 
 ### Assumptions
