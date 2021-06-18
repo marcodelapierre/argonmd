@@ -28,12 +28,12 @@ Lennard Jones solid with velocity Verlet integrator
 
 
 ### To-Do
-* Optional input parameters (with refactoring of parameter definitions)
 * Optional dumping of atomic coordinates
 
 
 ### Extras
-* The `examples_lammps` directory contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from **ArgonMD** with those from LAMMPS
+* The `tests` directory contains sample output files produced by *ArgonMD* with various sets of input parameters
+* The `examples_lammps` directory contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from *ArgonMD* with those from LAMMPS
 
 
 ### Credits
