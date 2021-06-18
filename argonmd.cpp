@@ -71,7 +71,6 @@ if ( argc > 6 ) {
   iinput = 1000;
 }
 const int ndump = iinput; // dump structure every these steps
-
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
@@ -154,14 +153,17 @@ get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
 get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
-// Print simulation info and initial thermo
+// Print simulation info
 print_info( box_units, nsteps, temp_ini, nneighupd, nthermo, ndump, dt, cellpar, boxlen, natoms );
-if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
-
+//if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
+//
 // Print initial thermo output
 cout << endl;
 printf(" %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp[K]", "Ekin[eV]", "Epot[eV]", "Etot[eV]", "Clock[s]" );
 print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
+
+// Dump initial atomic coordinates
+//if ( ndump > 0 ) {  }
 
 
 // Time evolution loop
