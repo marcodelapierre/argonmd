@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <cmath>
 #include <ctime>
 //#include <iomanip> // test only
@@ -134,6 +135,10 @@ double temp, ekin, epot, clocktime;
 int istep = 0;
 clock_t start, watch;
 double* forctmp;
+ofstream coor; // file for initial atomic coordinates
+ofstream traj; // file for evolving atomic coordinates
+const char* coorfile = "coord.pdb";
+const char* trajfile = "traj.pdb";
 
 // Print program header
 cout << endl;
@@ -165,7 +170,14 @@ printf(" %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp[K]
 print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
 
 // Dump initial atomic coordinates
-//if ( ndump > 0 ) {  }
+coor.open(coorfile);
+coor << "Test Initial PDB File.\n";
+coor << "2nd test line.\n";
+//dump_pdb( coor, pos, natoms ); // more inputs needed!
+coor.close();
+if ( ndump > 0 ) {  
+  traj.open(trajfile);
+}
 
 
 // Time evolution loop
@@ -212,6 +224,9 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 }
 
+
+// Close trajectory file if needed
+if ( ndump > 0 ) { traj.close(); }
 
 // Deallocate arrays
 delete [] forcold;
