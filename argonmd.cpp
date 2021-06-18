@@ -38,7 +38,7 @@ void update_vel( double*, const double* const, const double* const, const int, c
 double random( int* ); // this one is taken from Mantevo/miniMD
 //
 void print_arr( const double* const, const int, const int );
-void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const int );
+void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
 void dump_pdb( ofstream, const int, const double, const double, const char*, const double* const, const int );
 
@@ -130,8 +130,7 @@ ofstream coor; // file for initial atomic coordinates
 ofstream traj; // file for trajectory atomic coordinates
 
 // Print program header
-cout << endl;
-cout << "** ArgonMD ** " << endl;
+printf( "\n** ArgonMD **\n" );
 
 
 // Define structure and initialise velocities
@@ -150,12 +149,11 @@ compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh,
                boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
 // Print simulation info
-print_info( box_units, nsteps, temp_ini, nneighupd, nthermo, ndump, dt, cellpar, boxlen, natoms );
+print_info( box_units, nsteps, temp_ini, nneighupd, nthermo, ndump, dt, cut, cellpar, boxlen, natoms );
 //if ( 0 ) { print_arr( pos, 0, natoms ); print_arr( vel, 0, natoms ); } // debug print
 //
 // Print initial thermo output
-cout << endl;
-printf(" %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp[K]", "Ekin[eV]", "Epot[eV]", "Etot[eV]", "Clock[s]" );
+printf( "\n %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp[K]", "Ekin[eV]", "Epot[eV]", "Etot[eV]", "Clock[s]" );
 print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
 
 // Dump initial atomic coordinates
@@ -578,10 +576,9 @@ double random(int* idum)
 // Generic function to print arrays
 void print_arr( const double* const arr, const int istart, const int istop ) 
 {
-  cout << endl;
-  printf("%16c %16c %16c\n", 'X', 'Y', 'Z');
+  printf( "\n%16c %16c %16c\n", 'X', 'Y', 'Z' );
   for ( int i = istart; i < istop; i++) {
-    printf("%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
+    printf( "%+16.6E %+16.6E %+16.6E\n", arr[ 3 * i + 0 ], arr[ 3 * i + 1 ], arr[ 3 * i + 2 ] );
   }
 
   return;
@@ -591,7 +588,8 @@ void print_arr( const double* const arr, const int istart, const int istop )
 // Print information on simulation
 void print_info ( const int box_units, const int nsteps, const double temp_ini, 
                   const int nneighupd, const int nthermo, const int ndump, 
-                  const double dt, const double cellpar, const double boxlen, const int natoms ) 
+                  const double dt, const double cut, 
+                  const double cellpar, const double boxlen, const int natoms ) 
 {
   cout << endl;
   cout << " Box Units : " << box_units << endl;
@@ -602,6 +600,7 @@ void print_info ( const int box_units, const int nsteps, const double temp_ini,
   cout << " Coord Dump Freq : " << ndump << endl;
   cout << endl;
   cout << " Time Step [ps] : " << dt << endl;
+  cout << " Cutoff Dist [Ang] : " << cut << endl;
   cout << " Cell Par [Ang] : " << cellpar << endl;
   cout << " Box Length [Ang] : " << boxlen << endl;
   cout << " No. Atoms : " << natoms << endl;
@@ -615,7 +614,7 @@ void print_thermo( const int istep, const double time,
                    const double temp, const double ekin, const double epot, 
                    const double etot, const double clock ) 
 {
-  printf(" %9i  %10.3F  %8.3F  %+12.9F  %+12.9F  %+12.9F  %10.3F\n", 
+  printf( " %9i  %10.3F  %8.3F  %+12.9F  %+12.9F  %+12.9F  %10.3F\n", 
          istep, time, temp, ekin, epot, etot, clock );
 
   return;

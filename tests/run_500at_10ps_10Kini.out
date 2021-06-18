@@ -1,5 +1,5 @@
 
-** ArgonMD ** 
+** ArgonMD **
 
  Box Units : 5
  No. Time Steps : 10000
@@ -9,6 +9,7 @@
  Coord Dump Freq : 0
 
  Time Step [ps] : 0.001
+ Cutoff Dist [Ang] : 8.76
  Cell Par [Ang] : 5.795
  Box Length [Ang] : 28.975
  No. Atoms : 500
