@@ -92,7 +92,7 @@ Written in C++
 
 
 ### Extras
-* The directory `tests/` contains sample output files produced by *ArgonMD* with various sets of input parameters
+* The directory `sample_runs/` contains sample output files produced by *ArgonMD* with various sets of input parameters
 * The directory `examples_lammps/` contains LAMMPS input/output files that come from the [LAMMPS source](https://github.com/lammps/lammps), `examples/UNITS/`;  they allow to compare outputs from *ArgonMD* with those from LAMMPS
 
 
