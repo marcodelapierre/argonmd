@@ -1,9 +1,7 @@
 ## ArgonMD
 
-Training code: Molecular Dynamics  
+Training code (C++): Molecular Dynamics  
 Lennard Jones solid with velocity Verlet integrator  
-
-Programming paradigm and language: procedural C++
 
 
 ### Assumptions
@@ -28,7 +26,7 @@ Programming paradigm and language: procedural C++
 
 
 ### Available Implementations
-* Serial, single source file
+* Serial, procedural, single source file
 
 
 ### Usage
