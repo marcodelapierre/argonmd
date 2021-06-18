@@ -3,5 +3,7 @@ argonmd.x
 .vscode*
 *.dSYM*
 out*
+coord.pdb
+traj.pdb
 z
 zio*
