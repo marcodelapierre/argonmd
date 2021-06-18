@@ -23,6 +23,7 @@ double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
 void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
+void dump_pdb( ofstream, const int, const double, const double, const char*, const double* const, const int );
 
 
 
@@ -78,6 +79,7 @@ const int ndump = iinput; // dump structure every these steps
 const int funits = 4;
 const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC // affected by input parameters
 const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
+const double cellang = 90.0; // degrees
 const double boxlen = cellpar * box_units; // affected by input parameters
 const double boxhalf = boxlen * 0.5; // affected by input parameters
 const double unitpos[ funits * 3 ] = {
@@ -171,13 +173,10 @@ print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natom
 
 // Dump initial atomic coordinates
 coor.open(coorfile);
-coor << "Test Initial PDB File.\n";
-coor << "2nd test line.\n";
-//dump_pdb( coor, pos, natoms ); // more inputs needed!
+//coor << "Test Initial PDB File.\n"; coor << "2nd test line.\n";
+//dump_pdb( coor, istep, cellpar, cellang, elsym, pos, natoms );
 coor.close();
-if ( ndump > 0 ) {  
-  traj.open(trajfile);
-}
+if ( ndump > 0 ) { traj.open(trajfile); }
 
 
 // Time evolution loop
@@ -218,8 +217,9 @@ for (istep = 1; istep <= nsteps; istep++) {
   }
   
 // Dump atomic coordinates when required
+// Note that PDB files are large, use only for demonstrations; ideally these should go in a binary format (eg DCD)
 //   if ( ndump > 0 && istep%ndump == 0 ) {
-//   
+//     dump_pdb( traj, istep, cellpar, cellang, elsym, pos, natoms );
 //   }
   
 }
@@ -593,3 +593,13 @@ void print_thermo( const int istep, const double time,
 
   return;
 }
+
+
+// Dump atomic coordinates
+// void dump_pdb( ofstream file, const int istep, 
+//                const double cellpar, const double cellang, 
+//                const char* elsym, const double* const pos, const int natoms ) 
+// {
+
+//   return;
+// }
