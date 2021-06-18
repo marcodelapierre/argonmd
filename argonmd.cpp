@@ -591,19 +591,18 @@ void print_info ( const int box_units, const int nsteps, const double temp_ini,
                   const double dt, const double cut, 
                   const double cellpar, const double boxlen, const int natoms ) 
 {
-  cout << endl;
-  cout << " Box Units : " << box_units << endl;
-  cout << " No. Time Steps : " << nsteps << endl;
-  cout << " Initial Temp [K] : " << temp_ini << endl;
-  cout << " Neigh Update Freq : " << nneighupd << endl;
-  cout << " Thermo Print Freq : " << nthermo << endl;
-  cout << " Coord Dump Freq : " << ndump << endl;
-  cout << endl;
-  cout << " Time Step [ps] : " << dt << endl;
-  cout << " Cutoff Dist [Ang] : " << cut << endl;
-  cout << " Cell Par [Ang] : " << cellpar << endl;
-  cout << " Box Length [Ang] : " << boxlen << endl;
-  cout << " No. Atoms : " << natoms << endl;
+  printf( "\n Box Units : %i\n", box_units );
+  printf( " No. Time Steps : %i\n", nsteps );
+  printf( " Initial Temp [K] : %-6.1F\n", temp_ini );
+  printf( " Neigh Update Freq : %i\n", nneighupd );
+  printf( " Thermo Print Freq : %i\n", nthermo );
+  printf( " Coord Dump Freq : %i\n", ndump );
+
+  printf( "\n Time Step [ps] : %-5.3F\n", dt );
+  printf( " Cutoff Dist [Ang] : %-5.3F\n", cut );
+  printf( " Cell Par [Ang] : %-5.3F\n", cellpar );
+  printf( " Box Length [Ang] : %-7.3F\n", boxlen );
+  printf( " No. Atoms : %i\n", natoms );
 
   return;
 }

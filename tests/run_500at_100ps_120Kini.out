@@ -3,13 +3,13 @@
 
  Box Units : 5
  No. Time Steps : 100000
- Initial Temp [K] : 120
+ Initial Temp [K] : 120.0
  Neigh Update Freq : 20
  Thermo Print Freq : 1000
  Coord Dump Freq : 0
 
  Time Step [ps] : 0.001
- Cutoff Dist [Ang] : 8.76
+ Cutoff Dist [Ang] : 8.760
  Cell Par [Ang] : 5.795
  Box Length [Ang] : 28.975
  No. Atoms : 500
