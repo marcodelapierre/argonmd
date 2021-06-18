@@ -25,20 +25,53 @@ void print_thermo( const int, const double, const double, const double, const do
 
 
 
-int main() {
+int main( int argc, char** argv ) {
 //cout<<"Hello World!"<<endl;
 
 // Define parameters - using LAMMPS "metal" physical units convention
 // pressure unit is bar
 // force unit is eV/Ang
 //
-// Input parameters - might become editable by input
-const int box_units = 5; // no of unit cells per dimension in the simulation box
-const int nsteps = 10000;
-const double temp_ini = 10.; // K [117.7: datum from LAMMPS LJ example]
-const int nneighupd = 20; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = 1000; // print thermo info every these steps
-const int ndump = 1000; // dump structure every these steps
+// Input parameters - editable by input
+int iinput;
+double dinput;
+if ( argc > 1 ) {
+  iinput = atoi(argv[1]);
+} else {
+  iinput = 5; 
+}
+const int box_units = iinput; // no of unit cells per dimension in the simulation box
+if ( argc > 2 ) {
+  iinput = atoi(argv[2]);
+} else {
+  iinput = 10000;
+}
+const int nsteps = iinput; // no of time steps in the simulation
+if ( argc > 3 ) {
+  dinput = atof(argv[3]);
+} else {
+  dinput = 10.;
+}
+const double temp_ini = dinput; // K [117.7: datum from LAMMPS LJ example]
+if ( argc > 4 ) {
+  iinput = atoi(argv[4]);
+} else {
+  iinput = 20;
+}
+const int nneighupd = iinput; // update neighbour list every these steps [from LAMMPS LJ example]
+if ( argc > 5 ) {
+  iinput = atoi(argv[5]);
+} else {
+  iinput = 1000;
+}
+const int nthermo = iinput; // print thermo info every these steps
+if ( argc > 6 ) {
+  iinput = atoi(argv[6]);
+} else {
+  iinput = 1000;
+}
+const int ndump = iinput; // dump structure every these steps
+
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
