@@ -8,11 +8,11 @@ using namespace std;
 
 // function headers
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
-void get_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
+void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 void check_pbc( double*, const int, const double );
-void get_neigh( const double* const, const int, const double, const double, const double, const int, int*, int* );
-void get_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
+void compute_neigh( const double* const, const int, const double, const double, const double, const int, int*, int* );
+void compute_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
                     const double, const double, const double, const double, const double, double*, double& );
 void update_pos_pbc( double*, double*, const double* const, const double* const, 
                      const int, const double, const double, 
@@ -148,16 +148,16 @@ cout << "** ArgonMD ** " << endl;
 // Define structure and initialise velocities
 setup_struc_vel( funits, box_units, cellpar, unitpos, natoms, pos, posraw, vel );
 // Rescale to desired temperature
-get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
+compute_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 rescale_temp( vel, natoms, temp_ini, temp, ekin );
 
 // PBC check // not needed at startup with current input structure, yet here for generality
 check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
-get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
+compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
 
 // Compute initial forces
-get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
+compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
 // Print simulation info
@@ -190,14 +190,14 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 // Update (full) neighbour list
   if( nneighupd > 0 && istep%nneighupd == 0 ) { 
-    get_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
+    compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
   }
   
 // Store old forces and compute new forces
   forctmp = forcold;
   forcold = forc;
   forc = forctmp;
-  get_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
+  compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
                  boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
   
 // Update velocities
@@ -205,7 +205,7 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 // Compute temperature when required
   if ( nthermo > 0 && istep%nthermo == 0 ) {
-    get_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
+    compute_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
   }
   
 // Get clock time
@@ -304,7 +304,7 @@ void setup_struc_vel( const int funits, const int box_units,
 
 
 // Compute temperature and kinetic energy
-void get_temp_ekin( const double* const vel, const int natoms, const double mass, 
+void compute_temp_ekin( const double* const vel, const int natoms, const double mass, 
                     const double temp_scale, const double ekin_scale, 
                     double& temp, double& ekin ) 
 {
@@ -367,7 +367,7 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 
 // Build full neighbour list
 // Note that this implies 3D PBC
-void get_neigh( const double* const pos, const int natoms, 
+void compute_neigh( const double* const pos, const int natoms, 
                 const double boxlen, const double boxhalf, const double cutskinsq, 
                 const int maxneigh, int* numneigh, int* neigh ) 
 {
@@ -418,7 +418,7 @@ void get_neigh( const double* const pos, const int natoms,
 // Compute forces and potential energy
 // Note that this implies 3D PBC
 // Test against LAMMPS successful! (forces and accelerations)
-void get_forc_epot( const double* const pos, const int natoms, 
+void compute_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
                     const double boxlen, const double boxhalf, const double cutsq, 
                     const double sigma6, const double eps, 
