@@ -217,7 +217,7 @@ for (istep = 1; istep <= nsteps; istep++) {
   }
   
 // Dump atomic coordinates when required
-// Note that PDB files are large, use only for demonstrations; ideally these should go in a binary format (eg DCD)
+// Note that PDB files are large, so enable dumping only for demonstrations; ideally these should go in a binary format (eg DCD)
 //   if ( ndump > 0 && istep%ndump == 0 ) {
 //     dump_pdb( traj, istep, cellpar, cellang, elsym, pos, natoms );
 //   }

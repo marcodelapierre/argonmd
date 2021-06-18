@@ -1,7 +1,9 @@
 ## ArgonMD
 
 Training code: Molecular Dynamics  
-Lennard Jones solid with velocity Verlet integrator
+Lennard Jones solid with velocity Verlet integrator  
+
+Programming paradigm and language: procedural C++
 
 
 ### Assumptions
@@ -27,6 +29,65 @@ Lennard Jones solid with velocity Verlet integrator
 
 ### Available Implementations
 * Serial, single source file
+
+
+### Usage
+
+* Compile with `make`
+
+* Run with `./argonmd.x`
+
+* Output of default run: 
+
+  ```
+  
+  ** ArgonMD **
+  
+   Box Units : 5
+   No. Time Steps : 10000
+   Initial Temp [K] : 10
+   Neigh Update Freq : 20
+   Thermo Print Freq : 1000
+   Coord Dump Freq : 0
+  
+   Time Step [ps] : 0.001
+   Cell Par [Ang] : 5.795
+   Box Length [Ang] : 28.975
+   No. Atoms : 500
+  
+        Step    Time[ps]   Temp[K]      Ekin[eV]      Epot[eV]      Etot[eV]    Clock[s]
+           0       0.000    10.000  +0.001290016  -0.072045884  -0.070755867       0.000
+        1000       1.000     5.973  +0.000770507  -0.071526372  -0.070755865       0.458
+        2000       2.000     4.778  +0.000616321  -0.071376488  -0.070760167       0.938
+        3000       3.000     4.492  +0.000579534  -0.071339370  -0.070759837       1.393
+        4000       4.000     4.805  +0.000619904  -0.071377424  -0.070757520       1.845
+        5000       5.000     5.007  +0.000645927  -0.071402785  -0.070756858       2.306
+        6000       6.000     4.770  +0.000615386  -0.071373898  -0.070758513       2.776
+        7000       7.000     5.101  +0.000658049  -0.071414245  -0.070756196       3.289
+        8000       8.000     4.975  +0.000641736  -0.071398594  -0.070756858       3.743
+        9000       9.000     4.839  +0.000624277  -0.071381135  -0.070756857       4.209
+       10000      10.000     4.879  +0.000629441  -0.071386299  -0.070756857       4.670
+  ```
+
+* Editable input parameters
+
+  The first six parameters, as per program output, are customisable through optional command line arguments.  
+  Add a first argument to edit the number of box units, a second argument to also edit the number of time steps, and so on.  
+
+  Example of run with custom box units (`4`) and time steps (`50000`):
+  ```
+  ./argonmd.x 4 50000
+  ```
+
+  Example of fully customised run:
+  ```
+  ./argonmd.x 10 1000 20. 20 100 100
+  ```
+
+* Number of box units
+  
+  The first optional parameter specifies how many times the Argon unit cell is replicated along *x*, *y* and *z*, to create the simulation box.  As each unit cell contains 4 atoms, this parameter also directly determines the total number of atoms in the simulation.  
+  For instance, the default value of 5 means that the simulation box contains 5 X 5 X 5 = 125 unit cells, and 125 X 4 = 500 atoms.
 
 
 ### Extras
