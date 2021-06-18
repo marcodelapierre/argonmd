@@ -68,7 +68,7 @@ const int nthermo = iinput; // print thermo info every these steps
 if ( argc > 6 ) {
   iinput = atoi(argv[6]);
 } else {
-  iinput = 1000;
+  iinput = 0;
 }
 const int ndump = iinput; // dump structure every these steps
 //
@@ -97,6 +97,8 @@ const double hdt = 0.5 * dt;
 const double hdtsq = 0.5 * dt * dt;
 const double mass = 39.95; // gram/mol (also amu)
 const double imass = 1.0 / mass;
+const int atno = 18; // atomic number
+const char* elsym = "Ar"; // element symbol
 const double eps_kB = 117.7; // K
 const double eps = eps_kB * k_B; // eV
 const double sigma = 3.504; // angstrom

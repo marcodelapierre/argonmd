@@ -6,7 +6,7 @@
  Initial Temp [K] : 10
  Neigh Update Freq : 20
  Thermo Print Freq : 1000
- Coord Dump Freq : 1000
+ Coord Dump Freq : 0
 
  Time Step [ps] : 0.001
  Cell Par [Ang] : 5.795
