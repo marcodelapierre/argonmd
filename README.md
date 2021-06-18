@@ -20,15 +20,13 @@ Lennard Jones solid with velocity Verlet integrator
   * *Metal* physical units as in LAMMPS
   * Velocity Verlet integrator
   * Full neighbour list with regular updates
+  * Velocities initialised with random number generator, deterministic seed
   * Saving both raw and PBC-wrapped atomic coordinates
+  * [**TO-DO**] Optional dumping of atomic coordinates (PDB format - large files, for demonstration only)
 
 
 ### Available Implementations
 * Serial, single source file
-
-
-### To-Do
-* Optional dumping of atomic coordinates
 
 
 ### Extras
