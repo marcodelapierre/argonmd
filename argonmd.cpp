@@ -18,19 +18,25 @@ struct InputPars {
 
 // function headers
 InputPars get_input_pars( const int, char** );
+//
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
+//
 void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
-void check_pbc( double*, const int, const double );
+//
 void compute_neigh( const double* const, const int, const double, const double, const double, const int, int*, int* );
+//
 void compute_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
                     const double, const double, const double, const double, const double, double*, double& );
+//
+void check_pbc( double*, const int, const double );
 void update_pos_pbc( double*, double*, const double* const, const double* const, 
                      const int, const double, const double, 
                      const double, const double );
 void update_vel( double*, const double* const, const double* const, const int, const double, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
+//
 void print_arr( const double* const, const int, const int );
 void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
@@ -364,28 +370,6 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 }
 
 
-// Check periodic boundary conditions
-// Note that this implies 3D PBC
-void check_pbc( double* pos, const int natoms, const double boxlen ) 
-{
-  for ( int i = 0; i < natoms; i++ ) {
-    double x = pos[ 3 * i + 0 ];
-    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
-    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
-  
-    double y = pos[ 3 * i + 1 ];
-    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
-    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
-  
-    double z = pos[ 3 * i + 2 ];
-    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
-    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
-  }
-
-  return;
-}
-
-
 // Build full neighbour list
 // Note that this implies 3D PBC
 void compute_neigh( const double* const pos, const int natoms, 
@@ -490,6 +474,28 @@ void compute_forc_epot( const double* const pos, const int natoms,
   epot *= 2.0; // 4.0 * 0.5 [4.0 from LJ formula, 0.5 to account for double counting of contributes]
   // normalise by natoms to compare with LAMMPS
   
+  return;
+}
+
+
+// Check periodic boundary conditions
+// Note that this implies 3D PBC
+void check_pbc( double* pos, const int natoms, const double boxlen ) 
+{
+  for ( int i = 0; i < natoms; i++ ) {
+    double x = pos[ 3 * i + 0 ];
+    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
+    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
+  
+    double y = pos[ 3 * i + 1 ];
+    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
+    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
+  
+    double z = pos[ 3 * i + 2 ];
+    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
+    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
+  }
+
   return;
 }
 
