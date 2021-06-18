@@ -6,7 +6,18 @@
 
 using namespace std;
 
+// struct definitions
+struct InputPars {
+  int box_units;
+  int nsteps;
+  double temp_ini;
+  int nneighupd;
+  int nthermo;
+  int ndump;
+};
+
 // function headers
+InputPars get_input_pars( const int, char** );
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
 void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
@@ -35,44 +46,16 @@ int main( int argc, char** argv ) {
 // force unit is eV/Ang
 //
 // Input parameters - editable by input
-int iinput;
-double dinput;
-if ( argc > 1 ) {
-  iinput = atoi(argv[1]);
-} else {
-  iinput = 5; 
-}
-const int box_units = iinput; // no of unit cells per dimension in the simulation box
-if ( argc > 2 ) {
-  iinput = atoi(argv[2]);
-} else {
-  iinput = 10000;
-}
-const int nsteps = iinput; // no of time steps in the simulation
-if ( argc > 3 ) {
-  dinput = atof(argv[3]);
-} else {
-  dinput = 10.;
-}
-const double temp_ini = dinput; // K [117.7: datum from LAMMPS LJ example]
-if ( argc > 4 ) {
-  iinput = atoi(argv[4]);
-} else {
-  iinput = 20;
-}
-const int nneighupd = iinput; // update neighbour list every these steps [from LAMMPS LJ example]
-if ( argc > 5 ) {
-  iinput = atoi(argv[5]);
-} else {
-  iinput = 1000;
-}
-const int nthermo = iinput; // print thermo info every these steps
-if ( argc > 6 ) {
-  iinput = atoi(argv[6]);
-} else {
-  iinput = 0;
-}
-const int ndump = iinput; // dump structure every these steps
+InputPars input_pars = get_input_pars( argc, argv );
+const int box_units = input_pars.box_units; // no of unit cells per dimension in the simulation box
+const int nsteps = input_pars.nsteps; // no of time steps in the simulation
+const double temp_ini = input_pars.temp_ini; // K [117.7: datum from LAMMPS LJ example]
+const int nneighupd = input_pars.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
+const int nthermo = input_pars.nthermo; // print thermo info every these steps
+const int ndump = input_pars.ndump; // dump structure every these steps
+//
+const char* coorfile = "coord.pdb"; // filename for initial atomic coordinates
+const char* trajfile = "traj.pdb"; // filename for trajectory atomic coordinates
 //
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
@@ -135,12 +118,10 @@ double* forcold = new double [ natoms * 3 ];
 // Define variables and pointers
 double temp, ekin, epot, clocktime;
 int istep = 0;
-clock_t start, watch;
 double* forctmp;
+clock_t start, watch;
 ofstream coor; // file for initial atomic coordinates
-ofstream traj; // file for evolving atomic coordinates
-const char* coorfile = "coord.pdb";
-const char* trajfile = "traj.pdb";
+ofstream traj; // file for trajectory atomic coordinates
 
 // Print program header
 cout << endl;
@@ -241,6 +222,46 @@ return 0;
 }
 
 
+
+
+// Get input parameters
+InputPars get_input_pars( const int argc, char** argv ) 
+{
+  InputPars input_pars;
+
+  if ( argc > 1 ) {
+    input_pars.box_units = atoi(argv[1]);
+  } else {
+    input_pars.box_units = 5; 
+  }
+  if ( argc > 2 ) {
+    input_pars.nsteps = atoi(argv[2]);
+  } else {
+    input_pars.nsteps = 10000;
+  }
+  if ( argc > 3 ) {
+    input_pars.temp_ini = atof(argv[3]);
+  } else {
+    input_pars.temp_ini = 10.;
+  }
+  if ( argc > 4 ) {
+    input_pars.nneighupd = atoi(argv[4]);
+  } else {
+    input_pars.nneighupd = 20;
+  }
+  if ( argc > 5 ) {
+    input_pars.nthermo = atoi(argv[5]);
+  } else {
+    input_pars.nthermo = 1000;
+  }
+  if ( argc > 6 ) {
+    input_pars.ndump = atoi(argv[6]);
+  } else {
+    input_pars.ndump = 0;
+  }
+
+  return input_pars;
+}
 
 
 // Define structure and initialise velocities
