@@ -28,7 +28,7 @@ Written in C++
 
 
 ### Available Implementations
-* Serial, procedural, single source file
+1. Serial, procedural, single source file
 
 
 ### Usage
