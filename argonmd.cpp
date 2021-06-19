@@ -163,7 +163,7 @@ coor = fopen( coorfile, "w" );
 dump_pdb( coor, istep, boxlen, cellang, elsym, pos, natoms );
 //coor.close();
 fclose( coor );
-if ( ndump > 0 ) { traj = fopen( coorfile, "w" ); }
+if ( ndump > 0 ) { traj = fopen( trajfile, "w" ); }
 
 
 // Time evolution loop
@@ -205,9 +205,9 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 // Dump atomic coordinates when required
 // Note that PDB files are large, so enable dumping only for demonstrations; ideally these should go in a binary format (eg DCD)
-//   if ( ndump > 0 && istep%ndump == 0 ) {
-//     dump_pdb( traj, istep, boxlen, cellang, elsym, pos, natoms );
-//   }
+  if ( ndump > 0 && istep%ndump == 0 ) {
+    dump_pdb( traj, istep, boxlen, cellang, elsym, pos, natoms );
+  }
   
 }
 
@@ -629,6 +629,10 @@ void dump_pdb( FILE* file, const int istep,
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
   fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, cellang, cellang, cellang );
+  for (int i = 0; i < natoms; i++ ) {
+    fprintf( file, "ATOM  %5i %4s UNK  %-5i   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
+             i+1, elsym , i+1, pos[ 3 * i + 0 ], pos[ 3 * i + 1 ], pos[ 3 * i + 2 ], elsym );
+  }
   fprintf( file, "END   \n" );
   return;
 }
