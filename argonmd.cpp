@@ -157,13 +157,12 @@ printf( "\n %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp
 print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
 
 // Dump initial atomic coordinates
-coor = fopen( coorfile, "w" );
-//coor.open(coorfile);
-//coor << "Test Initial PDB File.\n"; coor << "2nd test line.\n";
-dump_pdb( coor, istep, boxlen, cellang, elsym, pos, natoms );
-//coor.close();
-fclose( coor );
-if ( ndump > 0 ) { traj = fopen( trajfile, "w" ); }
+if ( ndump > 0 ) {
+  coor = fopen( coorfile, "w" );
+  dump_pdb( coor, istep, boxlen, cellang, elsym, pos, natoms );
+  fclose( coor );
+  traj = fopen( trajfile, "w" );
+}
 
 
 // Time evolution loop
@@ -205,6 +204,7 @@ for (istep = 1; istep <= nsteps; istep++) {
   
 // Dump atomic coordinates when required
 // Note that PDB files are large, so enable dumping only for demonstrations; ideally these should go in a binary format (eg DCD)
+// Note also that ideally "posraw" should be used for positions; "pos" is used here instead, for convenience when demonstrating with VMD
   if ( ndump > 0 && istep%ndump == 0 ) {
     dump_pdb( traj, istep, boxlen, cellang, elsym, pos, natoms );
   }
@@ -624,14 +624,21 @@ void print_thermo( const int istep, const double time,
 
 // Dump atomic coordinates
 void dump_pdb( FILE* file, const int istep, 
-               const double boxlen, const double cellang, 
+               const double boxlen, const double boxang, 
                const char* elsym, const double* const pos, const int natoms ) 
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
-  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, cellang, cellang, cellang );
-  for (int i = 0; i < natoms; i++ ) {
-    fprintf( file, "ATOM  %5i %4s UNK  %-5i   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
-             i+1, elsym , i+1, pos[ 3 * i + 0 ], pos[ 3 * i + 1 ], pos[ 3 * i + 2 ], elsym );
+  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, boxang, boxang, boxang );
+  if ( natoms < 100000 ) {
+    for (int i = 0; i < natoms; i++ ) {
+      fprintf( file, "ATOM  %5i %4s UNK  %-5i   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
+               i+1, elsym , i+1, pos[ 3 * i + 0 ], pos[ 3 * i + 1 ], pos[ 3 * i + 2 ], elsym );
+    }
+  } else {
+    for (int i = 0; i < natoms; i++ ) {
+      fprintf( file, "ATOM  %5X %4s UNK  %-5X   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
+               i+1, elsym , i+1, pos[ 3 * i + 0 ], pos[ 3 * i + 1 ], pos[ 3 * i + 2 ], elsym );
+    }
   }
   fprintf( file, "END   \n" );
   return;
