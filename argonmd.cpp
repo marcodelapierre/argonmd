@@ -1,7 +1,7 @@
 #include <iostream>
-#include <fstream>
 #include <cmath>
 #include <ctime>
+//#include <fstream> // not using it, don't like the syntax
 //#include <iomanip> // test only
 
 using namespace std;
@@ -40,7 +40,7 @@ double random( int* ); // this one is taken from Mantevo/miniMD
 void print_arr( const double* const, const int, const int );
 void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
-void dump_pdb( ofstream, const int, const double, const double, const char*, const double* const, const int );
+void dump_pdb( FILE*, const int, const double, const double, const char*, const double* const, const int );
 
 
 
@@ -126,8 +126,8 @@ double temp, ekin, epot, clocktime;
 int istep = 0;
 double* forctmp;
 clock_t start, watch;
-ofstream coor; // file for initial atomic coordinates
-ofstream traj; // file for trajectory atomic coordinates
+FILE* coor; // file for initial atomic coordinates
+FILE* traj; // file for trajectory atomic coordinates
 
 // Print program header
 printf( "\n** ArgonMD **\n" );
@@ -157,11 +157,13 @@ printf( "\n %9s  %10s  %8s  %12s  %12s  %12s  %10s\n", "Step", "Time[ps]", "Temp
 print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, 0.0 );
 
 // Dump initial atomic coordinates
-coor.open(coorfile);
+coor = fopen( coorfile, "w" );
+//coor.open(coorfile);
 //coor << "Test Initial PDB File.\n"; coor << "2nd test line.\n";
-//dump_pdb( coor, istep, cellpar, cellang, elsym, pos, natoms );
-coor.close();
-if ( ndump > 0 ) { traj.open(trajfile); }
+dump_pdb( coor, istep, boxlen, cellang, elsym, pos, natoms );
+//coor.close();
+fclose( coor );
+if ( ndump > 0 ) { traj = fopen( coorfile, "w" ); }
 
 
 // Time evolution loop
@@ -204,14 +206,14 @@ for (istep = 1; istep <= nsteps; istep++) {
 // Dump atomic coordinates when required
 // Note that PDB files are large, so enable dumping only for demonstrations; ideally these should go in a binary format (eg DCD)
 //   if ( ndump > 0 && istep%ndump == 0 ) {
-//     dump_pdb( traj, istep, cellpar, cellang, elsym, pos, natoms );
+//     dump_pdb( traj, istep, boxlen, cellang, elsym, pos, natoms );
 //   }
   
 }
 
 
 // Close trajectory file if needed
-if ( ndump > 0 ) { traj.close(); }
+if ( ndump > 0 ) { fclose( traj ); }
 
 // Deallocate arrays
 delete [] forcold;
@@ -621,10 +623,12 @@ void print_thermo( const int istep, const double time,
 
 
 // Dump atomic coordinates
-// void dump_pdb( ofstream file, const int istep, 
-//                const double cellpar, const double cellang, 
-//                const char* elsym, const double* const pos, const int natoms ) 
-// {
-
-//   return;
-// }
+void dump_pdb( FILE* file, const int istep, 
+               const double boxlen, const double cellang, 
+               const char* elsym, const double* const pos, const int natoms ) 
+{
+  fprintf( file, "REMARK --- frame: %-5i\n", istep );
+  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, cellang, cellang, cellang );
+  fprintf( file, "END   \n" );
+  return;
+}
