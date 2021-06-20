@@ -1,8 +1,6 @@
 #include <iostream>
 #include <cmath>
 #include <ctime>
-//#include <fstream> // not using it, don't like the syntax
-//#include <iomanip> // test only
 
 using namespace std;
 
@@ -45,7 +43,7 @@ void dump_pdb( FILE*, const int, const double, const double, const char*, const 
 
 
 int main( int argc, char** argv ) {
-//cout<<"Hello World!"<<endl;
+//cout<<"Ciao Mondo!"<<endl;
 
 // Define parameters - using LAMMPS "metal" physical units convention
 // pressure unit is bar
@@ -295,8 +293,6 @@ void setup_struc_vel( const int funits, const int box_units,
           posraw[ idx + 0 ] = cellpar*i + unitpos[ 3 * l + 0 ];
           posraw[ idx + 1 ] = cellpar*j + unitpos[ 3 * l + 1 ];
           posraw[ idx + 2 ] = cellpar*k + unitpos[ 3 * l + 2 ];
-          //cout << left << setw(8) << pos[idx+0] << setw(8) << pos[idx+1] << setw(8) << pos[idx+2] << endl ; // test only
-          //cout << idx << endl; // test only
   
           // velocities
           int seed = idx;
@@ -311,7 +307,6 @@ void setup_struc_vel( const int funits, const int box_units,
           vytmp += vel[ idx + 1 ];
           vztmp += vel[ idx + 2 ];
         }
-        //cout << endl; // test only
       }
     }
   }
@@ -342,7 +337,6 @@ void compute_temp_ekin( const double* const vel, const int natoms, const double 
     const double vz = vel[ 3 * i + 2 ];
     tmp += (vx * vx + vy * vy + vz * vz) * mass; // mass: having it here is more general
   }
-  //cout << "Ave vv : " << tmp / natoms << endl;  // debug
 
   temp = tmp * temp_scale;
   ekin = tmp * ekin_scale * 0.5;
@@ -380,9 +374,6 @@ void compute_neigh( const double* const pos, const int natoms,
     numneigh[ i ] = 0;
   }
 
-  // int tot_nn = 0;
-  // int max_nn = 0;
-  // int min_nn = 1000000;
   for ( int i = 0; i < natoms; i++ ) {
     int num_nn = 0;
     for ( int j = 0; j < natoms; j++ ) {
@@ -403,18 +394,10 @@ void compute_neigh( const double* const pos, const int natoms,
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
         neigh[ i * maxneigh + num_nn++ ] = j;
-      } //else {
-        //cout << i << ' ' << j << ' ' << pos[ 3 * i + 0 ] << ' ' << pos[ 3 * i + 1 ] << ' ' << pos[ 3 * i + 2 ] << ' ' << pos[ 3 * j + 0 ] << ' ' << pos[ 3 * j + 1 ] << ' ' << pos[ 3 * j + 2 ] << endl;
-      //} // debug
+      }
     }
     numneigh[ i ] = num_nn;
-    // tot_nn += num_nn;
-    // max_nn = max( max_nn, num_nn );
-    // min_nn = min( min_nn, num_nn);
   }
-  // cout << "tot_nn = " << tot_nn << endl;
-  // cout << "max_nn = " << max_nn << endl;
-  // cout << "min_nn = " << min_nn << endl;
 
   return;
 }
@@ -472,7 +455,6 @@ void compute_forc_epot( const double* const pos, const int natoms,
     forc[ 3 * i + 2 ] = fz;
   }
   epot *= 2.0; // 4.0 * 0.5 [4.0 from LJ formula, 0.5 to account for double counting of contributes]
-  // normalise by natoms to compare with LAMMPS
   
   return;
 }
