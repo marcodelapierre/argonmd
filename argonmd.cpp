@@ -168,7 +168,7 @@ if ( ndump > 0 ) {
 start = clock();
 for (istep = 1; istep <= nsteps; istep++) {
 
-// This block could become a routine "integrate"; leaving it here for algorithm readability
+// This code block could become a routine "integrate"; leaving it here for algorithm readability
 // Note that this implies Velocity Verlet integrator
   {
 // Update positions and check PBC meanwhile
