@@ -1,5 +1,5 @@
 a.out
-argonmd.x
+argonmd*.x
 .vscode*
 *.dSYM*
 out*
