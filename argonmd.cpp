@@ -165,48 +165,51 @@ if ( ndump > 0 ) {
 
 
 // Time evolution loop
-// Note that this implies Velocity Verlet integrator
 start = clock();
 for (istep = 1; istep <= nsteps; istep++) {
-  
+
+// This block could become a routine "integrate"; leaving it here for algorithm readability
+// Note that this implies Velocity Verlet integrator
+  {
 // Update positions and check PBC meanwhile
   update_pos_pbc( pos, posraw, vel, forc, natoms, dt, forc_hdtsq_scale, imass, boxlen );
-  
+
 // Update (full) neighbour list
   if( nneighupd > 0 && istep%nneighupd == 0 ) { 
     compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
   }
-  
+
 // Store old forces and compute new forces
   forctmp = forcold;
   forcold = forc;
   forc = forctmp;
   compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-                 boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
-  
+                     boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
+
 // Update velocities
   update_vel( vel, forcold, forc, natoms, forc_hdt_scale, imass );
-  
+  }
+
 
   if ( nthermo > 0 && istep%nthermo == 0 ) {
 // Compute temperature when required
     compute_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
-  
+
 // Get clock time when required
     watch = clock() - start;
     clocktime = ((float)watch)/CLOCKS_PER_SEC;
-  
+
 // Print thermo output when required
     print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, clocktime );
   }
-  
+
 // Dump atomic coordinates when required
 // Note that PDB files are large, so enable dumping only for demonstrations; ideally these should go in a binary format (eg DCD)
 // Note also that ideally "posraw" should be used for positions; "pos" is used here instead, for convenience when demonstrating with VMD
   if ( ndump > 0 && istep%ndump == 0 ) {
     dump_pdb( traj, istep, boxlen, cellang, elsym, pos, natoms );
   }
-  
+
 }
 
 
