@@ -36,7 +36,8 @@ void update_vel( double*, const double* const, const double* const, const int, c
 double random( int* ); // this one is taken from Mantevo/miniMD
 //
 void print_arr( const double* const, const int, const int );
-void print_info( const int, const int, const double, const int, const int, const int, const double, const double, const double, const double, const int );
+void print_info( const int, const int, const double, const int, const int, const int, 
+                 const double, const double, const double, const double, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
 void dump_pdb( FILE*, const int, const double, const double, const char*, const double* const, const int );
 
@@ -186,17 +187,16 @@ for (istep = 1; istep <= nsteps; istep++) {
 // Update velocities
   update_vel( vel, forcold, forc, natoms, forc_hdt_scale, imass );
   
-// Compute temperature when required
+
   if ( nthermo > 0 && istep%nthermo == 0 ) {
+// Compute temperature when required
     compute_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
-  }
   
-// Get clock time
-  watch = clock() - start;
-  clocktime = ((float)watch)/CLOCKS_PER_SEC;
+// Get clock time when required
+    watch = clock() - start;
+    clocktime = ((float)watch)/CLOCKS_PER_SEC;
   
 // Print thermo output when required
-  if ( nthermo > 0 && istep%nthermo == 0 ) {
     print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, clocktime );
   }
   
