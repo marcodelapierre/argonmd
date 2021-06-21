@@ -213,6 +213,12 @@ for (istep = 1; istep <= nsteps; istep++) {
 }
 
 
+// Get and print final clocktime
+watch = clock() - start;
+clocktime = ((float)watch)/CLOCKS_PER_SEC;
+printf( "\n Loop Clock Time [s] : %10.3F\n" , clocktime );
+
+
 // Close trajectory file if needed
 if ( ndump > 0 ) { fclose( traj ); }
 
