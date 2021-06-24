@@ -2,6 +2,7 @@
   #define PARAMS_H
   #include "input.h"
 
+// This structure definition is not ideal (in OOP parameters would be spread across multiple classes); using it here for algorithm readability
   struct Params {
 
 // Define parameters - using LAMMPS "metal" physical units convention

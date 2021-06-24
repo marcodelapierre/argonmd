@@ -20,6 +20,7 @@ int main( int argc, char** argv ) {
 const InputParams input_params = get_input_params( argc, argv );
 
 // Define all parameters
+// This structure definition is not ideal (in OOP parameters would be spread across multiple classes); using it here for algorithm readability
 const Params params = get_params( input_params );
 
 // Allocate arrays
