@@ -29,6 +29,7 @@ Written in C++
 
 ### Available Procedural Implementations
 1. `serial_one_source`: serial, single source file
+2. `serial_multi_sources`: serial, multiple source files
 
 
 ### Usage
