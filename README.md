@@ -34,9 +34,9 @@ Written in C++
 
 ### Usage
 
-* Compile with `make` (any implementation sub-directory)
+* Compile with `make` (parent directory, or any implementation sub-directory)
 
-* Run with `./argonmd.x`
+* Run with `./argonmd.x` (any implementation sub-directory)
 
 * Output of default run: 
 
