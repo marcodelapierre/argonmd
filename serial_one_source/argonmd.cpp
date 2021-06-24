@@ -212,7 +212,6 @@ for (istep = 1; istep <= nsteps; istep++) {
 
 }
 
-
 // Get and print final clocktime
 watch = clock() - start;
 clocktime = ((float)watch)/CLOCKS_PER_SEC;

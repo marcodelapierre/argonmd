@@ -1,7 +1,6 @@
 #ifndef INPUT_H
   #define INPUT_H
 
-// struct definitions
   struct InputParams {
     int box_units;
     int nsteps;
