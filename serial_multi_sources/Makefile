@@ -1,13 +1,14 @@
 CXX = g++
 CXXFLAGS = -std=c++11 -g -O3 # -Wall -fbounds-check
 
+BIN = argonmd
 
 CPP_FILES = $(wildcard *.cpp)
 OBJ_FILES = $(patsubst %.cpp, %.o, $(CPP_FILES))
 
 
 .PHONY: exe
-exe: argonmd.x
+exe: $(BIN).x
 
 %.x: $(OBJ_FILES)
 	$(CXX) -o $@ $^
