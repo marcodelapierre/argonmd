@@ -27,13 +27,13 @@ Written in C++
   * Optional dumping of atomic coordinates (PDB format - large files, for demonstration only)
 
 
-### Available Implementations
-1. Serial, procedural, single source file
+### Available Procedural Implementations
+1. `serial_one_source`: serial, single source file
 
 
 ### Usage
 
-* Compile with `make`
+* Compile with `make` (any implementation sub-directory)
 
 * Run with `./argonmd.x`
 
