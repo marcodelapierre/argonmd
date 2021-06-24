@@ -2,7 +2,7 @@
   #define INPUT_H
 
 // struct definitions
-  struct InputPars {
+  struct InputParams {
     int box_units;
     int nsteps;
     double temp_ini;
@@ -11,6 +11,6 @@
     int ndump;
   };
 
-  InputPars get_input_pars( const int, char** );
+  InputParams get_input_params( const int, char** );
 
 #endif

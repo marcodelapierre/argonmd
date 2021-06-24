@@ -16,7 +16,7 @@ int main( int argc, char** argv ) {
 //cout<<"Ciao Mondo!"<<endl;
 
 // Input parameters - editable by input
-InputPars input_pars = get_input_pars( argc, argv );
+InputParams input_params = get_input_params( argc, argv );
 
 // Define all parameters
 
@@ -24,12 +24,12 @@ InputPars input_pars = get_input_pars( argc, argv );
 // pressure unit is bar
 // force unit is eV/Ang
 //
-const int box_units = input_pars.box_units; // no of unit cells per dimension in the simulation box
-const int nsteps = input_pars.nsteps; // no of time steps in the simulation
-const double temp_ini = input_pars.temp_ini; // K [117.7: datum from LAMMPS LJ example]
-const int nneighupd = input_pars.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = input_pars.nthermo; // print thermo info every these steps
-const int ndump = input_pars.ndump; // dump structure every these steps
+const int box_units = input_params.box_units; // no of unit cells per dimension in the simulation box
+const int nsteps = input_params.nsteps; // no of time steps in the simulation
+const double temp_ini = input_params.temp_ini; // K [117.7: datum from LAMMPS LJ example]
+const int nneighupd = input_params.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
+const int nthermo = input_params.nthermo; // print thermo info every these steps
+const int ndump = input_params.ndump; // dump structure every these steps
 //
 const char* coorfile = "coord.pdb"; // filename for initial atomic coordinates
 const char* trajfile = "traj.pdb"; // filename for trajectory atomic coordinates

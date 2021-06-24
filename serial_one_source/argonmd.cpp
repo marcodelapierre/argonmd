@@ -5,7 +5,7 @@
 using namespace std;
 
 // struct definitions
-struct InputPars {
+struct InputParams {
   int box_units;
   int nsteps;
   double temp_ini;
@@ -15,7 +15,7 @@ struct InputPars {
 };
 
 // function headers
-InputPars get_input_pars( const int, char** );
+InputParams get_input_params( const int, char** );
 //
 void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
 //
@@ -51,13 +51,13 @@ int main( int argc, char** argv ) {
 // force unit is eV/Ang
 //
 // Input parameters - editable by input
-InputPars input_pars = get_input_pars( argc, argv );
-const int box_units = input_pars.box_units; // no of unit cells per dimension in the simulation box
-const int nsteps = input_pars.nsteps; // no of time steps in the simulation
-const double temp_ini = input_pars.temp_ini; // K [117.7: datum from LAMMPS LJ example]
-const int nneighupd = input_pars.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
-const int nthermo = input_pars.nthermo; // print thermo info every these steps
-const int ndump = input_pars.ndump; // dump structure every these steps
+InputParams input_params = get_input_params( argc, argv );
+const int box_units = input_params.box_units; // no of unit cells per dimension in the simulation box
+const int nsteps = input_params.nsteps; // no of time steps in the simulation
+const double temp_ini = input_params.temp_ini; // K [117.7: datum from LAMMPS LJ example]
+const int nneighupd = input_params.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
+const int nthermo = input_params.nthermo; // print thermo info every these steps
+const int ndump = input_params.ndump; // dump structure every these steps
 //
 const char* coorfile = "coord.pdb"; // filename for initial atomic coordinates
 const char* trajfile = "traj.pdb"; // filename for trajectory atomic coordinates
@@ -238,42 +238,42 @@ return 0;
 
 
 // Get input parameters
-InputPars get_input_pars( const int argc, char** argv ) 
+InputParams get_input_params( const int argc, char** argv ) 
 {
-  InputPars input_pars;
+  InputParams input_params;
 
   if ( argc > 1 ) {
-    input_pars.box_units = atoi(argv[1]);
+    input_params.box_units = atoi(argv[1]);
   } else {
-    input_pars.box_units = 5; 
+    input_params.box_units = 5; 
   }
   if ( argc > 2 ) {
-    input_pars.nsteps = atoi(argv[2]);
+    input_params.nsteps = atoi(argv[2]);
   } else {
-    input_pars.nsteps = 10000;
+    input_params.nsteps = 10000;
   }
   if ( argc > 3 ) {
-    input_pars.temp_ini = atof(argv[3]);
+    input_params.temp_ini = atof(argv[3]);
   } else {
-    input_pars.temp_ini = 10.;
+    input_params.temp_ini = 10.;
   }
   if ( argc > 4 ) {
-    input_pars.nneighupd = atoi(argv[4]);
+    input_params.nneighupd = atoi(argv[4]);
   } else {
-    input_pars.nneighupd = 20;
+    input_params.nneighupd = 20;
   }
   if ( argc > 5 ) {
-    input_pars.nthermo = atoi(argv[5]);
+    input_params.nthermo = atoi(argv[5]);
   } else {
-    input_pars.nthermo = 1000;
+    input_params.nthermo = 1000;
   }
   if ( argc > 6 ) {
-    input_pars.ndump = atoi(argv[6]);
+    input_params.ndump = atoi(argv[6]);
   } else {
-    input_pars.ndump = 0;
+    input_params.ndump = 0;
   }
 
-  return input_pars;
+  return input_params;
 }
 
 
