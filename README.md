@@ -12,16 +12,17 @@ Written in C++
   * Homo-atomic Argon system
     * Implies single mass value, single set of force-field parameters
   * Condensed phase
-  * Starting structure is the equilibrium faced-centered cubic (*fcc*) lattice
-  * Cubic box as supercell of crystal *fcc* unit cell
+  * Cubic simulation box as a supercell of the crystal faced-centered cubic (*fcc*) unit cell
   * Three-dimensional (3D) periodic boundary conditions (PBC)
   * NVE ensemble (constant Number of particles, Volume and total Energy)
   * Lennard-Jones (LJ) pairwise interactions, with distance cut-off
 
 * Algorithmic aspects
-  * *Metal* physical units as in LAMMPS
   * Velocity Verlet integrator
   * Full neighbour list with regular updates
+    * Other implementations exist, with better performance for large simulation boxes
+  * *Metal* physical units as in LAMMPS
+  * Starting structure is the equilibrium *fcc* lattice for solid Argon
   * Velocities initialised with random number generator, deterministic seed
   * Saving both raw and PBC-wrapped atomic coordinates
   * Optional dumping of atomic coordinates (PDB format - large files, for demonstration only)
