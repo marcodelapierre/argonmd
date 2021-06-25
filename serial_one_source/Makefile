@@ -5,6 +5,7 @@ BIN = argonmd
 
 CPP_FILES = $(wildcard *.cpp)
 OBJ_FILES = $(patsubst %.cpp, %.o, $(CPP_FILES))
+.SECONDARY: $(OBJ_FILES)
 
 
 .PHONY: exe
@@ -17,6 +18,10 @@ exe: $(BIN).x
 	$(CXX) $(CXXFLAGS) -c $<
 
 
+.PHONY: clean_obj
+clean_obj:
+	rm -f *.o
+
 .PHONY: clean
 clean:
-	rm -f *.x
+	rm -f *.x *.o

@@ -1,5 +1,6 @@
 a.out
 argonmd*.x
+*.o
 .vscode*
 *.dSYM*
 out*

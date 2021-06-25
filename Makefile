@@ -11,6 +11,10 @@ serial_multi:
 	cd serial_multi_sources && $(MAKE) exe
 
 
+.PHONY: clean_obj_all
+clean_obj_all:
+	rm -f */*.o
+
 .PHONY: clean_all
 clean_all:
-	rm -f */*.x
+	rm -f */*.x */*.o
