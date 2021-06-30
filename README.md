@@ -25,7 +25,9 @@ Written in C++
   * Starting structure is the equilibrium *fcc* lattice for solid Argon
   * Velocities initialised with random number generator, deterministic seed
   * Saving both raw and PBC-wrapped atomic coordinates
-  * Optional dumping of atomic coordinates (PDB format - large files, for demonstration only)
+  * Optional dumping of atomic coordinates
+    * PDB format - large files, for demonstration only
+    * PDB outputs can be opened by VMD
 
 
 ### Available Procedural Implementations
