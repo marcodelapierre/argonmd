@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -g -O3 # -Wall -fbounds-check
+CXXFLAGS = -std=c++11 -g -Ofast -funroll-loops -mavx2 -march=skylake # edit march depending on system
 
 BIN = argonmd
 
