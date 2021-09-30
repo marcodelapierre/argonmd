@@ -20,7 +20,9 @@ void compute_forc_epot( const double* const pos, const int natoms,
     double fx = 0.;
     double fy = 0.;
     double fz = 0.;
+    double epot_omp = 0.;
   
+    # pragma omp parallel for reduction(+:fx) reduction(+:fy) reduction(+:fz) reduction(+:epot_omp)
     for ( int k = 0; k < numneighs; k++ ) {
       const int j = neighs[k];
   
@@ -45,12 +47,13 @@ void compute_forc_epot( const double* const pos, const int natoms,
         fx += dx * force_factor;
         fy += dy * force_factor;
         fz += dz * force_factor;
-        epot += isr6 * (isr6 - 1.0) * eps;
+        epot_omp += isr6 * (isr6 - 1.0) * eps;
       }
     }
     forc[ 3 * i + 0 ] = fx;
     forc[ 3 * i + 1 ] = fy;
     forc[ 3 * i + 2 ] = fz;
+    epot += epot_omp;
   }
   epot *= 2.0; // 4.0 * 0.5 [4.0 from LJ formula, 0.5 to account for double counting of contributes]
   
