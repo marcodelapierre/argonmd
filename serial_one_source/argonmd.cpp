@@ -6,7 +6,7 @@ using namespace std;
 
 // struct definitions
 struct InputParams {
-  int box_units;
+  int box_units[ 3 ];
   int nsteps;
   double temp_ini;
   int nneighupd;
@@ -17,29 +17,29 @@ struct InputParams {
 // function headers
 InputParams get_input_params( const int, char** );
 //
-void setup_struc_vel( const int, const int, const double, const double*, const int, double*, double*, double* );
+void setup_struc_vel( const int, const int*, const double, const double*, const int, double*, double*, double* );
 //
 void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 //
-void compute_neigh( const double* const, const int, const double, const double, const double, const int, int*, int* );
+void compute_neigh( const double* const, const int, const double*, const double*, const double, const int, int*, int* );
 //
 void compute_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
-                    const double, const double, const double, const double, const double, double*, double& );
+                    const double*, const double*, const double, const double, const double, double*, double& );
 //
-void check_pbc( double*, const int, const double );
+void check_pbc( double*, const int, const double* );
 void update_pos_pbc( double*, double*, const double* const, const double* const, 
                      const int, const double, const double, 
-                     const double, const double );
+                     const double, const double* );
 void update_vel( double*, const double* const, const double* const, const int, const double, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 //
 void print_arr( const double* const, const int, const int );
-void print_info( const int, const int, const double, const int, const int, const int, 
-                 const double, const double, const double, const double, const int );
+void print_info( const int*, const int, const double, const int, const int, const int, 
+                 const double, const double, const double, const double*, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
-void dump_pdb( FILE*, const int, const double, const double, const char*, const double* const, const int );
+void dump_pdb( FILE*, const int, const double*, const double, const char*, const double* const, const int );
 
 
 
@@ -52,7 +52,11 @@ int main( int argc, char** argv ) {
 //
 // Input parameters - editable by input
 InputParams input_params = get_input_params( argc, argv );
-const int box_units = input_params.box_units; // no of unit cells per dimension in the simulation box
+const int box_units[ 3 ] = {
+  input_params.box_units[0],
+  input_params.box_units[1],
+  input_params.box_units[2]
+  }; // no of unit cells per each dimension in the simulation box
 const int nsteps = input_params.nsteps; // no of time steps in the simulation
 const double temp_ini = input_params.temp_ini; // K [117.7: datum from LAMMPS LJ example]
 const int nneighupd = input_params.nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
@@ -65,17 +69,25 @@ const char* trajfile = "traj.pdb"; // filename for trajectory atomic coordinates
 // Crystal structure for Argon (fcc)
 // Note that fcc implies 3D PBC
 const int funits = 4;
-const int natoms = funits * box_units * box_units * box_units; // note that this implies 3D PBC // affected by input parameters
+const int natoms = funits * box_units[0] * box_units[1] * box_units[2]; // note that this implies 3D PBC // affected by input parameters
 const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
 const double cellang = 90.0; // degrees
-const double boxlen = cellpar * box_units; // affected by input parameters
-const double boxhalf = boxlen * 0.5; // affected by input parameters
+const double boxlen[ 3 ] = {
+  cellpar * box_units[0],
+  cellpar * box_units[1],
+  cellpar * box_units[2]
+  }; // affected by input parameters
+const double boxhalf[ 3 ] = {
+  0.5 * boxlen[0],
+  0.5 * boxlen[1],
+  0.5 * boxlen[2]
+  }; // affected by input parameters
 const double unitpos[ funits * 3 ] = {
   0., 0., 0.,
   0.5*cellpar, 0.5*cellpar, 0.,
   0.5*cellpar, 0., 0.5*cellpar,
   0., 0.5*cellpar, 0.5*cellpar
-};
+  };
 //
 // Some physical constants here
 const double k_B = 8.617343e-05; // eV/K
@@ -242,9 +254,13 @@ InputParams get_input_params( const int argc, char** argv )
   InputParams input_params;
 
   if ( argc > 1 ) {
-    input_params.box_units = atoi(argv[1]);
+    input_params.box_units[0] = atoi(argv[1]);
+    input_params.box_units[1] = atoi(argv[1]);
+    input_params.box_units[2] = atoi(argv[1]);
   } else {
-    input_params.box_units = 5; 
+    input_params.box_units[0] = 5;
+    input_params.box_units[1] = 5;
+    input_params.box_units[2] = 5;
   }
   if ( argc > 2 ) {
     input_params.nsteps = atoi(argv[2]);
@@ -278,20 +294,20 @@ InputParams get_input_params( const int argc, char** argv )
 
 // Define structure and initialise velocities
 // Note that this implies 3D PBC
-void setup_struc_vel( const int funits, const int box_units, 
+void setup_struc_vel( const int funits, const int* box_units, 
                       const double cellpar, const double* unitpos, 
                       const int natoms, double* pos, double* posraw, double* vel ) 
 {
   const int fd = funits * 3;
-  const int bfd = box_units * fd;
-  const int bbfd = box_units * bfd;
+  const int bfd = box_units[2] * fd;
+  const int bbfd = box_units[1] * bfd;
 
   double vxtmp = 0.;
   double vytmp = 0.;
   double vztmp = 0.;
-  for ( int i = 0; i < box_units; i++ ) {
-    for ( int j = 0; j < box_units; j++ ) {
-      for ( int k = 0; k < box_units; k++ ) {
+  for ( int i = 0; i < box_units[0]; i++ ) {
+    for ( int j = 0; j < box_units[1]; j++ ) {
+      for ( int k = 0; k < box_units[2]; k++ ) {
         for ( int l = 0; l < funits; l++ ) {
           const int idx = i * bbfd + j * bfd + k * fd + l * 3;
           // positions
@@ -375,7 +391,7 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 // Build full neighbour list
 // Note that this implies 3D PBC
 void compute_neigh( const double* const pos, const int natoms, 
-                const double boxlen, const double boxhalf, const double cutskinsq, 
+                const double* boxlen, const double* boxhalf, const double cutskinsq, 
                 const int maxneigh, int* numneigh, int* neigh ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
@@ -388,16 +404,16 @@ void compute_neigh( const double* const pos, const int natoms,
       if ( i == j ) continue;
 
       double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf )   { dx -= boxlen; }
-      if ( dx < - boxhalf ) { dx += boxlen; }
+      if ( dx > boxhalf[0] )   { dx -= boxlen[0]; }
+      if ( dx < - boxhalf[0] ) { dx += boxlen[0]; }
 
       double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf )   { dy -= boxlen; }
-      if ( dy < - boxhalf ) { dy += boxlen; }
+      if ( dy > boxhalf[1] )   { dy -= boxlen[1]; }
+      if ( dy < - boxhalf[1] ) { dy += boxlen[1]; }
 
       double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf )   { dz -= boxlen; }
-      if ( dz < - boxhalf ) { dz += boxlen; }
+      if ( dz > boxhalf[2] )   { dz -= boxlen[2]; }
+      if ( dz < - boxhalf[2] ) { dz += boxlen[2]; }
 
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
@@ -416,7 +432,7 @@ void compute_neigh( const double* const pos, const int natoms,
 // Test against LAMMPS successful! (forces and accelerations)
 void compute_forc_epot( const double* const pos, const int natoms, 
                     const int maxneigh, const int* const numneigh, const int* const neigh, 
-                    const double boxlen, const double boxhalf, const double cutsq, 
+                    const double* boxlen, const double* boxhalf, const double cutsq, 
                     const double sigma6, const double eps, 
                     double* forc, double& epot )
 {
@@ -435,16 +451,16 @@ void compute_forc_epot( const double* const pos, const int natoms,
       const int j = neighs[k];
   
       double dx = x - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf ) { dx -= boxlen; }
-      if ( dx < - boxhalf ) { dx += boxlen; }
+      if ( dx > boxhalf[0] ) { dx -= boxlen[0]; }
+      if ( dx < - boxhalf[0] ) { dx += boxlen[0]; }
   
       double dy = y - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf ) { dy -= boxlen; }
-      if ( dy < - boxhalf ) { dy += boxlen; }
+      if ( dy > boxhalf[1] ) { dy -= boxlen[1]; }
+      if ( dy < - boxhalf[1] ) { dy += boxlen[1]; }
   
       double dz = z - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf ) { dz -= boxlen; }
-      if ( dz < - boxhalf ) { dz += boxlen; }
+      if ( dz > boxhalf[2] ) { dz -= boxlen[2]; }
+      if ( dz < - boxhalf[2] ) { dz += boxlen[2]; }
   
       const double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutsq ) {
@@ -470,20 +486,20 @@ void compute_forc_epot( const double* const pos, const int natoms,
 
 // Check periodic boundary conditions
 // Note that this implies 3D PBC
-void check_pbc( double* pos, const int natoms, const double boxlen ) 
+void check_pbc( double* pos, const int natoms, const double* boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     double x = pos[ 3 * i + 0 ];
-    if ( x >= boxlen ) { x -= boxlen; pos[ 3 * i + 0 ] = x; }
-    if ( x < 0. )      { x += boxlen; pos[ 3 * i + 0 ] = x; }
+    if ( x >= boxlen[0] ) { x -= boxlen[0]; pos[ 3 * i + 0 ] = x; }
+    if ( x < 0. )      { x += boxlen[0]; pos[ 3 * i + 0 ] = x; }
   
     double y = pos[ 3 * i + 1 ];
-    if ( y >= boxlen ) { y -= boxlen; pos[ 3 * i + 1 ] = y; }
-    if ( y < 0. )      { y += boxlen; pos[ 3 * i + 1 ] = y; }
+    if ( y >= boxlen[1] ) { y -= boxlen[1]; pos[ 3 * i + 1 ] = y; }
+    if ( y < 0. )      { y += boxlen[1]; pos[ 3 * i + 1 ] = y; }
   
     double z = pos[ 3 * i + 2 ];
-    if ( z >= boxlen ) { z -= boxlen; pos[ 3 * i + 2 ] = z; }
-    if ( z < 0. )      { z += boxlen; pos[ 3 * i + 2 ] = z; }
+    if ( z >= boxlen[2] ) { z -= boxlen[2]; pos[ 3 * i + 2 ] = z; }
+    if ( z < 0. )      { z += boxlen[2]; pos[ 3 * i + 2 ] = z; }
   }
 
   return;
@@ -493,27 +509,27 @@ void check_pbc( double* pos, const int natoms, const double boxlen )
 // Update positions and check PBC meanwhile
 void update_pos_pbc( double* pos, double* posraw, const double* const vel, const double* const forc, 
                      const int natoms, const double dt, const double forc_hdtsq_scale, 
-                     const double imass, const double boxlen ) 
+                     const double imass, const double* boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
     double x = pos[ 3 * i + 0 ] + dx;
-    if ( x >= boxlen ) { x -= boxlen; }
-    if ( x < 0. )      { x += boxlen; }
+    if ( x >= boxlen[0] ) { x -= boxlen[0]; }
+    if ( x < 0. )      { x += boxlen[0]; }
     pos[ 3 * i + 0 ] = x;
     posraw[ 3 * i + 0 ] += dx;
   
     double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
     double y = pos[ 3 * i + 1 ] + dy;
-    if ( y >= boxlen ) { y -= boxlen; }
-    if ( y < 0. )      { y += boxlen; }
+    if ( y >= boxlen[1] ) { y -= boxlen[1]; }
+    if ( y < 0. )      { y += boxlen[1]; }
     pos[ 3 * i + 1 ] = y;
     posraw[ 3 * i + 1 ] += dy;
   
     double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
     double z = pos[ 3 * i + 2 ] + dz;
-    if ( z >= boxlen ) { z -= boxlen; }
-    if ( z < 0. )      { z += boxlen; }
+    if ( z >= boxlen[2] ) { z -= boxlen[2]; }
+    if ( z < 0. )      { z += boxlen[2]; }
     pos[ 3 * i + 2 ] = z;
     posraw[ 3 * i + 2 ] += dz;
   }
@@ -578,12 +594,13 @@ void print_arr( const double* const arr, const int istart, const int istop )
 
 
 // Print information on simulation
-void print_info ( const int box_units, const int nsteps, const double temp_ini, 
+void print_info ( const int* box_units, const int nsteps, const double temp_ini, 
                   const int nneighupd, const int nthermo, const int ndump, 
                   const double dt, const double cut, 
-                  const double cellpar, const double boxlen, const int natoms ) 
+                  const double cellpar, const double* boxlen, const int natoms ) 
 {
-  printf( "\n Box Units : %i\n", box_units );
+  printf( "\n Box Units : %-3i  %-3i  %-3i\n", 
+    box_units[0], box_units[1], box_units[2] );
   printf( " No. Time Steps : %i\n", nsteps );
   printf( " Initial Temp [K] : %-6.1F\n", temp_ini );
   printf( " Neigh Update Freq : %i\n", nneighupd );
@@ -593,7 +610,8 @@ void print_info ( const int box_units, const int nsteps, const double temp_ini,
   printf( "\n Time Step [ps] : %-5.3F\n", dt );
   printf( " Cutoff Dist [Ang] : %-5.3F\n", cut );
   printf( " Cell Par [Ang] : %-5.3F\n", cellpar );
-  printf( " Box Length [Ang] : %-7.3F\n", boxlen );
+  printf( " Box Length [Ang] : %-7.3F  %-7.3F  %-7.3F\n", 
+    boxlen[0], boxlen[1], boxlen[2] );
   printf( " No. Atoms : %i\n", natoms );
 
   return;
@@ -614,11 +632,11 @@ void print_thermo( const int istep, const double time,
 
 // Dump atomic coordinates
 void dump_pdb( FILE* file, const int istep, 
-               const double boxlen, const double boxang, 
+               const double* boxlen, const double boxang, 
                const char* elsym, const double* const pos, const int natoms ) 
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
-  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, boxang, boxang, boxang );
+  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen[0], boxlen[1], boxlen[2], boxang, boxang, boxang );
   if ( natoms < 100000 ) {
     for (int i = 0; i < natoms; i++ ) {
       fprintf( file, "ATOM  %5i %4s UNK  %-5i   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
