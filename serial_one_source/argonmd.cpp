@@ -39,7 +39,7 @@ void print_arr( const double* const, const int, const int );
 void print_info( const int* const, const int, const double, const int, const int, const int, 
     const double, const double, const double, const double* const, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
-void dump_pdb( FILE*, const int, const double* const, const double, const char*, const double* const, const int );
+void dump_pdb( FILE*, const int, const double* const, const double, const char* const, const double* const, const int );
 
 
 
@@ -663,7 +663,7 @@ void print_thermo( const int istep, const double time, const double temp,
 // Dump atomic coordinates
 void dump_pdb( FILE* file, const int istep, 
     const double* const boxlen, const double boxang, 
-    const char* elsym, const double* const pos, const int natoms ) 
+    const char* const elsym, const double* const pos, const int natoms ) 
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
   fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen[0], boxlen[1], boxlen[2], boxang, boxang, boxang );
