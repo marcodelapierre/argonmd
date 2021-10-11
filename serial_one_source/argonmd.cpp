@@ -18,29 +18,28 @@ struct InputParams {
 // function headers
 InputParams get_input_params( const int, char** );
 //
-void setup_struc_vel( const int, const int*, const double, const double*, const int, double*, double*, double* );
+void setup_struc_vel( const int, const int* const, const double, const double* const, const int, double*, double*, double* );
 //
 void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 //
-void compute_neigh( const double* const, const int, const double*, const double*, const double, const int, int*, int* );
+void compute_neigh( const double* const, const int, const double* const, const double* const, const double, const int, int*, int* );
 //
 void compute_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
-                    const double*, const double*, const double, const double, const double, double*, double& );
+    const double* const, const double* const, const double, const double, const double, double*, double& );
 //
-void check_pbc( double*, const int, const double* );
-void update_pos_pbc( double*, double*, const double* const, const double* const, 
-                     const int, const double, const double, 
-                     const double, const double* );
+void check_pbc( double*, const int, const double* const );
+void update_pos_pbc( double*, double*, const double* const, const double* const, const int, 
+    const double, const double, const double, const double* const );
 void update_vel( double*, const double* const, const double* const, const int, const double, const double );
 //
 double random( int* ); // this one is taken from Mantevo/miniMD
 //
 void print_arr( const double* const, const int, const int );
-void print_info( const int*, const int, const double, const int, const int, const int, 
-                 const double, const double, const double, const double*, const int );
+void print_info( const int* const, const int, const double, const int, const int, const int, 
+    const double, const double, const double, const double* const, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
-void dump_pdb( FILE*, const int, const double*, const double, const char*, const double* const, const int );
+void dump_pdb( FILE*, const int, const double* const, const double, const char*, const double* const, const int );
 
 
 
@@ -158,7 +157,7 @@ compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neig
 
 // Compute initial forces
 compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
-               boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
+                   boxlen, boxhalf, cutsq, sigma6, eps, forc, epot );
 
 // Print simulation info
 print_info( box_units, nsteps, temp_ini, nneighupd, nthermo, ndump, dt, cut, cellpar, boxlen, natoms );
@@ -321,9 +320,9 @@ InputParams get_input_params( const int argc, char** argv )
 
 // Define structure and initialise velocities
 // Note that this implies 3D PBC
-void setup_struc_vel( const int funits, const int* box_units, 
-                      const double cellpar, const double* unitpos, 
-                      const int natoms, double* pos, double* posraw, double* vel ) 
+void setup_struc_vel( const int funits, const int* const box_units, 
+    const double cellpar, const double* const unitpos, const int natoms, 
+    double* pos, double* posraw, double* vel ) 
 {
   const int fd = funits * 3;
   const int bfd = box_units[2] * fd;
@@ -377,9 +376,9 @@ void setup_struc_vel( const int funits, const int* box_units,
 
 
 // Compute temperature and kinetic energy
-void compute_temp_ekin( const double* const vel, const int natoms, const double mass, 
-                    const double temp_scale, const double ekin_scale, 
-                    double& temp, double& ekin ) 
+void compute_temp_ekin( const double* const vel, const int natoms, 
+    const double mass, const double temp_scale, const double ekin_scale, 
+    double& temp, double& ekin ) 
 {
   double tmp = 0.;
   for ( int i = 0; i < natoms; i++ ) {
@@ -398,7 +397,7 @@ void compute_temp_ekin( const double* const vel, const int natoms, const double 
 
 // Rescale to desired temperature
 void rescale_temp( double* vel, const int natoms, const double temp_ini, 
-                   double& temp, double& ekin ) 
+    double& temp, double& ekin ) 
 {
   const double t_factor = temp_ini / temp;
   const double t_factor_sqrt = sqrt( t_factor );
@@ -418,8 +417,9 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 // Build full neighbour list
 // Note that this implies 3D PBC
 void compute_neigh( const double* const pos, const int natoms, 
-                const double* boxlen, const double* boxhalf, const double cutskinsq, 
-                const int maxneigh, int* numneigh, int* neigh ) 
+    const double* const boxlen, const double* const boxhalf, 
+    const double cutskinsq, const int maxneigh, 
+    int* numneigh, int* neigh ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     numneigh[ i ] = 0;
@@ -458,10 +458,10 @@ void compute_neigh( const double* const pos, const int natoms,
 // Note that this implies 3D PBC
 // Test against LAMMPS successful! (forces and accelerations)
 void compute_forc_epot( const double* const pos, const int natoms, 
-                    const int maxneigh, const int* const numneigh, const int* const neigh, 
-                    const double* boxlen, const double* boxhalf, const double cutsq, 
-                    const double sigma6, const double eps, 
-                    double* forc, double& epot )
+    const int maxneigh, const int* const numneigh, const int* const neigh, 
+    const double* const boxlen, const double* const boxhalf, 
+    const double cutsq, const double sigma6, const double eps, 
+    double* forc, double& epot )
 {
   epot = 0.;
   for ( int i = 0; i < natoms; i++ ) {
@@ -513,7 +513,7 @@ void compute_forc_epot( const double* const pos, const int natoms,
 
 // Check periodic boundary conditions
 // Note that this implies 3D PBC
-void check_pbc( double* pos, const int natoms, const double* boxlen ) 
+void check_pbc( double* pos, const int natoms, const double* const boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     double x = pos[ 3 * i + 0 ];
@@ -534,9 +534,10 @@ void check_pbc( double* pos, const int natoms, const double* boxlen )
 
 
 // Update positions and check PBC meanwhile
-void update_pos_pbc( double* pos, double* posraw, const double* const vel, const double* const forc, 
-                     const int natoms, const double dt, const double forc_hdtsq_scale, 
-                     const double imass, const double* boxlen ) 
+void update_pos_pbc( double* pos, double* posraw, 
+    const double* const vel, const double* const forc, const int natoms, 
+    const double dt, const double forc_hdtsq_scale, 
+    const double imass, const double* const boxlen ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
@@ -565,8 +566,9 @@ void update_pos_pbc( double* pos, double* posraw, const double* const vel, const
 
 // Update velocities
 // Note that this implies Velocity Verlet integrator
-void update_vel( double* vel, const double* const forcold, const double* const forc, 
-                 const int natoms, const double forc_hdt_scale, const double imass ) 
+void update_vel( double* vel, 
+    const double* const forcold, const double* const forc, 
+    const int natoms, const double forc_hdt_scale, const double imass ) 
 {
   for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
@@ -621,10 +623,11 @@ void print_arr( const double* const arr, const int istart, const int istop )
 
 
 // Print information on simulation
-void print_info ( const int* box_units, const int nsteps, const double temp_ini, 
-                  const int nneighupd, const int nthermo, const int ndump, 
-                  const double dt, const double cut, 
-                  const double cellpar, const double* boxlen, const int natoms ) 
+void print_info ( const int* const box_units, const int nsteps, 
+    const double temp_ini, const int nneighupd, 
+    const int nthermo, const int ndump, 
+    const double dt, const double cut, const double cellpar, 
+    const double* const boxlen, const int natoms ) 
 {
   printf( "\n Box Units : %-3i  %-3i  %-3i\n", 
     box_units[0], box_units[1], box_units[2] );
@@ -646,9 +649,9 @@ void print_info ( const int* box_units, const int nsteps, const double temp_ini,
 
 
 // Print thermodynamic information
-void print_thermo( const int istep, const double time, 
-                   const double temp, const double ekin, const double epot, 
-                   const double etot, const double clock ) 
+void print_thermo( const int istep, const double time, const double temp, 
+    const double ekin, const double epot, const double etot, 
+    const double clock ) 
 {
   printf( " %9i  %10.3F  %8.3F  %+12.9F  %+12.9F  %+12.9F  %10.3F\n", 
          istep, time, temp, ekin, epot, etot, clock );
@@ -659,8 +662,8 @@ void print_thermo( const int istep, const double time,
 
 // Dump atomic coordinates
 void dump_pdb( FILE* file, const int istep, 
-               const double* boxlen, const double boxang, 
-               const char* elsym, const double* const pos, const int natoms ) 
+    const double* const boxlen, const double boxang, 
+    const char* elsym, const double* const pos, const int natoms ) 
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
   fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen[0], boxlen[1], boxlen[2], boxang, boxang, boxang );
