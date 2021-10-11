@@ -9,7 +9,7 @@
 // pressure unit is bar
 // force unit is eV/Ang
 //
-    int box_units; // no of unit cells per dimension in the simulation box
+    int box_units[ 3 ]; // no of unit cells per each dimension in the simulation box
     int nsteps; // no of time steps in the simulation
     double temp_ini; // K [117.7: datum from LAMMPS LJ example]
     int nneighupd; // update neighbour list every these steps [from LAMMPS LJ example]
@@ -25,8 +25,8 @@
     int natoms; // note that this implies 3D PBC // affected by input parameters
     const double cellpar = 5.795; // angstrom [datum from LAMMPS LJ example] [5.256: from real data]
     const double cellang = 90.0; // degrees
-    double boxlen; // affected by input parameters
-    double boxhalf; // affected by input parameters
+    double boxlen[ 3 ]; // affected by input parameters
+    double boxhalf[ 3 ]; // affected by input parameters
     const double unitpos[ funits * 3 ] = {
       0., 0., 0.,
       0.5*cellpar, 0.5*cellpar, 0.,

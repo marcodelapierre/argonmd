@@ -2,7 +2,7 @@
   #define INPUT_H
 
   struct InputParams {
-    int box_units;
+    int box_units[ 3 ];
     int nsteps;
     double temp_ini;
     int nneighupd;

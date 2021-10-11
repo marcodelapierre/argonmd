@@ -57,7 +57,7 @@ compute_neigh( pos, params.natoms, params.boxlen, params.boxhalf, params.cutskin
 
 // Compute initial forces
 compute_forc_epot( pos, params.natoms, params.maxneigh, numneigh, neigh, 
-               params.boxlen, params.boxhalf, params.cutsq, params.sigma6, params.eps, forc, epot );
+                   params.boxlen, params.boxhalf, params.cutsq, params.sigma6, params.eps, forc, epot );
 
 // Print simulation info
 print_info( params.box_units, params.nsteps, params.temp_ini, params.nneighupd, params.nthermo, params.ndump, 
