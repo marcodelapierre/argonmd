@@ -12,7 +12,7 @@ Written in C++
   * Homo-atomic Argon system
     * Implies single mass value, single set of force-field parameters
   * Condensed phase
-  * Cubic simulation box as a supercell of the crystal faced-centered cubic (*fcc*) unit cell
+  * Orthorhombic simulation box as a supercell of the crystal faced-centered cubic (*fcc*) unit cell
   * Three-dimensional (3D) periodic boundary conditions (PBC)
   * NVE ensemble (constant Number of particles, Volume and total Energy)
   * Lennard-Jones (LJ) pairwise interactions, with distance cut-off
@@ -47,7 +47,7 @@ Written in C++
   
   ** ArgonMD **
   
-   Box Units : 5
+   Box Units : 5    5    5
    No. Time Steps : 10000
    Initial Temp [K] : 10.0
    Neigh Update Freq : 20
@@ -57,7 +57,7 @@ Written in C++
    Time Step [ps] : 0.001
    Cutoff Dist [Ang] : 8.760
    Cell Par [Ang] : 5.795
-   Box Length [Ang] : 28.975
+   Box Length [Ang] : 28.975   28.975   28.975
    No. Atoms : 500
   
         Step    Time[ps]   Temp[K]      Ekin[eV]      Epot[eV]      Etot[eV]    Clock[s]
@@ -80,10 +80,18 @@ Written in C++
 
   The first six parameters, as per program output, are customisable through optional command line arguments.  
   Add a first argument to edit the number of box units, a second argument to also edit the number of time steps, and so on.  
+  As regards box units, up to three comma-separated integers are accepted: 
+  `a`, `a,b` or `a,b,c` will produce *a X a X a* cubic, *a X a X b* tetragonal or *a X b X c* orthorhombic 
+  simulation boxes, respectively.  
 
   Example of run with custom box units (`4`) and time steps (`50000`):
   ```
   ./argonmd.x 4 50000
+  ```
+
+  Example of run with custom orthorhombic box units (`4,5,6`):
+  ```
+  ./argonmd.x 4,5,6
   ```
 
   Example of fully customised run:
@@ -94,7 +102,11 @@ Written in C++
 * Number of box units
   
   The first optional parameter specifies how many times the Argon unit cell is replicated along *x*, *y* and *z*, to create the simulation box.  As each unit cell contains 4 atoms, this parameter also directly determines the total number of atoms in the simulation.  
-  For instance, the default value of 5 means that the simulation box contains 5 X 5 X 5 = 125 unit cells, and 125 X 4 = 500 atoms.
+  For instance, the default value of `5` means that the simulation box contains *5 X 5 X 5 = 125* unit cells, and *125 X 4 = 500* atoms.  
+
+  Using a tetragonal or orthorhombic simulation box can be useful when performing scaling tests, as it allows easier control on the number of atoms, that is on the problem size.  For instance, to double up the size of the default `5` box, an input parameter of `5,10` can be used, which will double the box size along the *z* axis.  
+
+  Finally, note how a mininmum unit of `4` is needed along each direction, if convergence is desired with respect to the distance cut-off for the pairwise interactions.
 
 
 ### Extras
