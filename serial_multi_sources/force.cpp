@@ -5,10 +5,10 @@
 // Note that this implies 3D PBC
 // Test against LAMMPS successful! (forces and accelerations)
 void compute_forc_epot( const double* const pos, const int natoms, 
-                    const int maxneigh, const int* const numneigh, const int* const neigh, 
-                    const double boxlen, const double boxhalf, const double cutsq, 
-                    const double sigma6, const double eps, 
-                    double* forc, double& epot )
+    const int maxneigh, const int* const numneigh, const int* const neigh, 
+    const double* const boxlen, const double* const boxhalf, 
+    const double cutsq, const double sigma6, const double eps, 
+    double* forc, double& epot )
 {
   epot = 0.;
   for ( int i = 0; i < natoms; i++ ) {
@@ -25,16 +25,16 @@ void compute_forc_epot( const double* const pos, const int natoms,
       const int j = neighs[k];
   
       double dx = x - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf ) { dx -= boxlen; }
-      if ( dx < - boxhalf ) { dx += boxlen; }
+      if ( dx > boxhalf[0] ) { dx -= boxlen[0]; }
+      if ( dx < - boxhalf[0] ) { dx += boxlen[0]; }
   
       double dy = y - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf ) { dy -= boxlen; }
-      if ( dy < - boxhalf ) { dy += boxlen; }
+      if ( dy > boxhalf[1] ) { dy -= boxlen[1]; }
+      if ( dy < - boxhalf[1] ) { dy += boxlen[1]; }
   
       double dz = z - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf ) { dz -= boxlen; }
-      if ( dz < - boxhalf ) { dz += boxlen; }
+      if ( dz > boxhalf[2] ) { dz -= boxlen[2]; }
+      if ( dz < - boxhalf[2] ) { dz += boxlen[2]; }
   
       const double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutsq ) {
