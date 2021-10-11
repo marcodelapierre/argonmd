@@ -8,6 +8,13 @@ void compute_neigh( const double* const pos, const int natoms,
     const double cutskinsq, const int maxneigh, 
     int* numneigh, int* neigh ) 
 {
+  const double boxlen0 = boxlen[0];
+  const double boxlen1 = boxlen[1];
+  const double boxlen2 = boxlen[2];
+  const double boxhalf0 = boxhalf[0];
+  const double boxhalf1 = boxhalf[1];
+  const double boxhalf2 = boxhalf[2];
+
   for ( int i = 0; i < natoms; i++ ) {
     numneigh[ i ] = 0;
   }
@@ -18,16 +25,16 @@ void compute_neigh( const double* const pos, const int natoms,
       if ( i == j ) continue;
 
       double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf[0] )   { dx -= boxlen[0]; }
-      if ( dx < - boxhalf[0] ) { dx += boxlen[0]; }
+      if ( dx > boxhalf0 )   { dx -= boxlen0; }
+      if ( dx < - boxhalf0 ) { dx += boxlen0; }
 
       double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf[1] )   { dy -= boxlen[1]; }
-      if ( dy < - boxhalf[1] ) { dy += boxlen[1]; }
+      if ( dy > boxhalf1 )   { dy -= boxlen1; }
+      if ( dy < - boxhalf1 ) { dy += boxlen1; }
 
       double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf[2] )   { dz -= boxlen[2]; }
-      if ( dz < - boxhalf[2] ) { dz += boxlen[2]; }
+      if ( dz > boxhalf2 )   { dz -= boxlen2; }
+      if ( dz < - boxhalf2 ) { dz += boxlen2; }
 
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
