@@ -5,9 +5,9 @@ using namespace std;
 
 
 // Compute temperature and kinetic energy
-void compute_temp_ekin( const double* const vel, const int natoms, const double mass, 
-                    const double temp_scale, const double ekin_scale, 
-                    double& temp, double& ekin ) 
+void compute_temp_ekin( const double* const vel, const int natoms, 
+    const double mass, const double temp_scale, const double ekin_scale, 
+    double& temp, double& ekin ) 
 {
   double tmp = 0.;
   for ( int i = 0; i < natoms; i++ ) {
@@ -26,7 +26,7 @@ void compute_temp_ekin( const double* const vel, const int natoms, const double 
 
 // Rescale to desired temperature
 void rescale_temp( double* vel, const int natoms, const double temp_ini, 
-                   double& temp, double& ekin ) 
+    double& temp, double& ekin ) 
 {
   const double t_factor = temp_ini / temp;
   const double t_factor_sqrt = sqrt( t_factor );

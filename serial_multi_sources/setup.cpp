@@ -4,20 +4,20 @@
 
 // Define structure and initialise velocities
 // Note that this implies 3D PBC
-void setup_struc_vel( const int funits, const int box_units, 
-                      const double cellpar, const double* unitpos, 
-                      const int natoms, double* pos, double* posraw, double* vel ) 
+void setup_struc_vel( const int funits, const int* const box_units, 
+    const double cellpar, const double* const unitpos, const int natoms, 
+    double* pos, double* posraw, double* vel ) 
 {
   const int fd = funits * 3;
-  const int bfd = box_units * fd;
-  const int bbfd = box_units * bfd;
+  const int bfd = box_units[2] * fd;
+  const int bbfd = box_units[1] * bfd;
 
   double vxtmp = 0.;
   double vytmp = 0.;
   double vztmp = 0.;
-  for ( int i = 0; i < box_units; i++ ) {
-    for ( int j = 0; j < box_units; j++ ) {
-      for ( int k = 0; k < box_units; k++ ) {
+  for ( int i = 0; i < box_units[0]; i++ ) {
+    for ( int j = 0; j < box_units[1]; j++ ) {
+      for ( int k = 0; k < box_units[2]; k++ ) {
         for ( int l = 0; l < funits; l++ ) {
           const int idx = i * bbfd + j * bfd + k * fd + l * 3;
           // positions
