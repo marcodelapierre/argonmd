@@ -17,12 +17,14 @@ void print_arr( const double* const arr, const int istart, const int istop )
 
 
 // Print information on simulation
-void print_info ( const int box_units, const int nsteps, const double temp_ini, 
-                  const int nneighupd, const int nthermo, const int ndump, 
-                  const double dt, const double cut, 
-                  const double cellpar, const double boxlen, const int natoms ) 
+void print_info ( const int* const box_units, const int nsteps, 
+    const double temp_ini, const int nneighupd, 
+    const int nthermo, const int ndump, 
+    const double dt, const double cut, const double cellpar, 
+    const double* const boxlen, const int natoms ) 
 {
-  printf( "\n Box Units : %i\n", box_units );
+  printf( "\n Box Units : %-3i  %-3i  %-3i\n", 
+    box_units[0], box_units[1], box_units[2] );
   printf( " No. Time Steps : %i\n", nsteps );
   printf( " Initial Temp [K] : %-6.1F\n", temp_ini );
   printf( " Neigh Update Freq : %i\n", nneighupd );
@@ -32,7 +34,8 @@ void print_info ( const int box_units, const int nsteps, const double temp_ini,
   printf( "\n Time Step [ps] : %-5.3F\n", dt );
   printf( " Cutoff Dist [Ang] : %-5.3F\n", cut );
   printf( " Cell Par [Ang] : %-5.3F\n", cellpar );
-  printf( " Box Length [Ang] : %-7.3F\n", boxlen );
+  printf( " Box Length [Ang] : %-7.3F  %-7.3F  %-7.3F\n", 
+    boxlen[0], boxlen[1], boxlen[2] );
   printf( " No. Atoms : %i\n", natoms );
 
   return;
@@ -41,8 +44,8 @@ void print_info ( const int box_units, const int nsteps, const double temp_ini,
 
 // Print thermodynamic information
 void print_thermo( const int istep, const double time, 
-                   const double temp, const double ekin, const double epot, 
-                   const double etot, const double clock ) 
+    const double temp, const double ekin, const double epot, 
+    const double etot, const double clock ) 
 {
   printf( " %9i  %10.3F  %8.3F  %+12.9F  %+12.9F  %+12.9F  %10.3F\n", 
          istep, time, temp, ekin, epot, etot, clock );
@@ -53,11 +56,11 @@ void print_thermo( const int istep, const double time,
 
 // Dump atomic coordinates
 void dump_pdb( FILE* file, const int istep, 
-               const double boxlen, const double boxang, 
-               const char* elsym, const double* const pos, const int natoms ) 
+    const double* const boxlen, const double boxang, 
+    const char* const elsym, const double* const pos, const int natoms ) 
 {
   fprintf( file, "REMARK --- frame: %-5i\n", istep );
-  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen, boxlen, boxlen, boxang, boxang, boxang );
+  fprintf( file, "CRYST1%9.3F%9.3F%9.3F%7.2F%7.2F%7.2F\n", boxlen[0], boxlen[1], boxlen[2], boxang, boxang, boxang );
   if ( natoms < 100000 ) {
     for (int i = 0; i < natoms; i++ ) {
       fprintf( file, "ATOM  %5i %4s UNK  %-5i   %8.3F%8.3F%8.3F  1.00  0.00          %2s  \n", 
