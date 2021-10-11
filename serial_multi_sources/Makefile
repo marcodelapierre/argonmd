@@ -1,5 +1,6 @@
 CXX = g++
-CXXFLAGS = -std=c++11 -g -Ofast -funroll-loops -mavx2 -march=native # edit march depending on system
+CXXFLAGS = -std=c++11 -g -Ofast -funroll-loops # -mavx2 -march=native # edit march depending on system
+LDFLAGS = -g
 
 BIN = argonmd
 
@@ -12,7 +13,7 @@ OBJ_FILES = $(patsubst %.cpp, %.o, $(CPP_FILES))
 exe: $(BIN).x
 
 %.x: $(OBJ_FILES)
-	$(CXX) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $<
