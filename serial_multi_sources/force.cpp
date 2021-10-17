@@ -33,18 +33,12 @@ void compute_forc_epot( const double* const pos, const int natoms,
       const int j = neighs[k];
 
       double dx = x - pos[ 3 * j + 0 ];
-//      if ( dx > boxhalf0 ) { dx -= boxlen0; }
-//      if ( dx < - boxhalf0 ) { dx += boxlen0; }
       dx -= floor( ( dx + boxhalf0 ) / boxlen0 ) * boxlen0;
 
       double dy = y - pos[ 3 * j + 1 ];
-//      if ( dy > boxhalf1 ) { dy -= boxlen1; }
-//      if ( dy < - boxhalf1 ) { dy += boxlen1; }
       dy -= floor( ( dy + boxhalf1 ) / boxlen1 ) * boxlen1;
 
       double dz = z - pos[ 3 * j + 2 ];
-//      if ( dz > boxhalf2 ) { dz -= boxlen2; }
-//      if ( dz < - boxhalf2 ) { dz += boxlen2; }
       dz -= floor( ( dz + boxhalf2 ) / boxlen2 ) * boxlen2;
 
       const double rsq = dx * dx + dy * dy + dz * dz;

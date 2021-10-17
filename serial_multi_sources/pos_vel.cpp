@@ -41,24 +41,18 @@ void update_pos_pbc( double* pos, double* posraw,
   for ( int i = 0; i < natoms; i++ ) {
     double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
     double x = pos[ 3 * i + 0 ] + dx;
-//    if ( x >= boxlen0 ) { x -= boxlen0; }
-//    if ( x < 0. )      { x += boxlen0; }
     x -= floor( x / boxlen0 ) * boxlen0;
     pos[ 3 * i + 0 ] = x;
     posraw[ 3 * i + 0 ] += dx;
   
     double dy = vel[ 3 * i + 1 ] * dt + forc[ 3 * i + 1 ] * forc_hdtsq_scale * imass;
     double y = pos[ 3 * i + 1 ] + dy;
-//    if ( y >= boxlen1 ) { y -= boxlen1; }
-//    if ( y < 0. )      { y += boxlen1; }
     y -= floor( y / boxlen1 ) * boxlen1;
     pos[ 3 * i + 1 ] = y;
     posraw[ 3 * i + 1 ] += dy;
   
     double dz = vel[ 3 * i + 2 ] * dt + forc[ 3 * i + 2 ] * forc_hdtsq_scale * imass;
     double z = pos[ 3 * i + 2 ] + dz;
-//    if ( z >= boxlen2 ) { z -= boxlen2; }
-//    if ( z < 0. )      { z += boxlen2; }
     z -= floor( z / boxlen2 ) * boxlen2;
     pos[ 3 * i + 2 ] = z;
     posraw[ 3 * i + 2 ] += dz;
