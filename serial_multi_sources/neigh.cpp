@@ -1,3 +1,4 @@
+#include <cmath>
 #include "neigh.h"
 
 
@@ -25,16 +26,19 @@ void compute_neigh( const double* const pos, const int natoms,
       if ( i == j ) continue;
 
       double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
-      if ( dx > boxhalf0 )   { dx -= boxlen0; }
-      if ( dx < - boxhalf0 ) { dx += boxlen0; }
+//      if ( dx > boxhalf0 )   { dx -= boxlen0; }
+//      if ( dx < - boxhalf0 ) { dx += boxlen0; }
+      dx -= floor( ( dx + boxhalf0 ) / boxlen0 ) * boxlen0;
 
       double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
-      if ( dy > boxhalf1 )   { dy -= boxlen1; }
-      if ( dy < - boxhalf1 ) { dy += boxlen1; }
+//      if ( dy > boxhalf1 )   { dy -= boxlen1; }
+//      if ( dy < - boxhalf1 ) { dy += boxlen1; }
+      dy -= floor( ( dy + boxhalf1 ) / boxlen1 ) * boxlen1;
 
       double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
-      if ( dz > boxhalf2 )   { dz -= boxlen2; }
-      if ( dz < - boxhalf2 ) { dz += boxlen2; }
+//      if ( dz > boxhalf2 )   { dz -= boxlen2; }
+//      if ( dz < - boxhalf2 ) { dz += boxlen2; }
+      dz -= floor( ( dz + boxhalf2 ) / boxlen2 ) * boxlen2;
 
       double rsq = dx * dx + dy * dy + dz * dz;
       if ( rsq <= cutskinsq ) {
