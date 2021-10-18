@@ -53,7 +53,7 @@ rescale_temp( vel, params.natoms, params.temp_ini, temp, ekin );
 // PBC check // not needed at startup with current input structure, yet here for generality
 check_pbc( pos, params.natoms, params.boxlen );
 // Build (full) neighbour list
-compute_neigh( pos, params.natoms, params.boxlen, params.boxhalf, params.cutskinsq, params.maxneigh, numneigh, neigh );
+compute_neigh_verlet( pos, params.natoms, params.boxlen, params.boxhalf, params.cutskinsq, params.maxneigh, numneigh, neigh );
 
 // Compute initial forces
 compute_forc_epot( pos, params.natoms, params.maxneigh, numneigh, neigh, 
@@ -89,7 +89,7 @@ for (istep = 1; istep <= params.nsteps; istep++) {
 
 // Update (full) neighbour list
   if( params.nneighupd > 0 && istep%params.nneighupd == 0 ) { 
-    compute_neigh( pos, params.natoms, params.boxlen, params.boxhalf, params.cutskinsq, params.maxneigh, numneigh, neigh );
+    compute_neigh_verlet( pos, params.natoms, params.boxlen, params.boxhalf, params.cutskinsq, params.maxneigh, numneigh, neigh );
   }
 
 // Store old forces and compute new forces

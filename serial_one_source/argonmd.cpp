@@ -23,7 +23,7 @@ void setup_struc_vel( const int, const int* const, const double, const double* c
 void compute_temp_ekin( const double* const, const int, const double, const double, const double, double&, double& );
 void rescale_temp( double*, const int, const double, double&, double& );
 //
-void compute_neigh( const double* const, const int, const double* const, const double* const, const double, const int, int*, int* );
+void compute_neigh_verlet( const double* const, const int, const double* const, const double* const, const double, const int, int*, int* );
 //
 void compute_forc_epot( const double* const, const int, const int, const int* const, const int* const, 
     const double* const, const double* const, const double, const double, const double, double*, double& );
@@ -153,7 +153,7 @@ rescale_temp( vel, natoms, temp_ini, temp, ekin );
 // PBC check // not needed at startup with current input structure, yet here for generality
 check_pbc( pos, natoms, boxlen );
 // Build (full) neighbour list
-compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
+compute_neigh_verlet( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
 
 // Compute initial forces
 compute_forc_epot( pos, natoms, maxneigh, numneigh, neigh, 
@@ -188,7 +188,7 @@ for (istep = 1; istep <= nsteps; istep++) {
 
 // Update (full) neighbour list
   if( nneighupd > 0 && istep%nneighupd == 0 ) { 
-    compute_neigh( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
+    compute_neigh_verlet( pos, natoms, boxlen, boxhalf, cutskinsq, maxneigh, numneigh, neigh );
   }
 
 // Store old forces and compute new forces
@@ -414,9 +414,9 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
 }
 
 
-// Build full neighbour list
+// Build full neighbour list - Verlet algorithm
 // Note that this implies 3D PBC
-void compute_neigh( const double* const pos, const int natoms, 
+void compute_neigh_verlet( const double* const pos, const int natoms, 
     const double* const boxlen, const double* const boxhalf, 
     const double cutskinsq, const int maxneigh, 
     int* numneigh, int* neigh ) 
