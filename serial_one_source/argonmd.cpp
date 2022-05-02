@@ -113,7 +113,21 @@ const double cut = cut_fac * sigma;
 const double cutskin = cut + skin_fac * sigma;
 const double cutsq = cut * cut;
 const double cutskinsq = cutskin * cutskin;
+//
 const int maxneigh = 150; // with an fcc of side 5.256, and cut+skin of 9.8112, the real maxneigh is 86
+const double neicell_fac = 1.0; // fraction of cutskin for cell size
+const int neicell_units [ 3 ] = {
+  static_cast<int>( floor( box_len[0] / cutskin * neicell_fac ) ),
+  static_cast<int>( floor( box_len[1] / cutskin * neicell_fac ) ),
+  static_cast<int>( floor( box_len[2] / cutskin * neicell_fac ) )
+}; // number of cells for Cellular neighbour lists
+const double neicell_len [ 3 ] = {
+  box_len[0] / neicell_units[0],
+  box_len[1] / neicell_units[1],
+  box_len[2] / neicell_units[2],
+}; // size of cells for Cellular neighbour list
+const int nneicell = neicell_units[0] * neicell_units[1] * neicell_units[2];
+const int max_neicell_list = static_cast<int>( ceil( natoms / nneicell * 1.1 ) );
 //
 const double N_dof = ( natoms * 3 - 3 ); // note that this implies 3D PBC (different expressions for lower dimensionalities) // affected by input parameters
 const double ekin_scale = 10.0 / N_av / J_eV; // 1.036427e-04; // this factor is needed when using metal units ("mvv2e" in Mantevo/miniMD) [from my notes]
@@ -126,6 +140,8 @@ const double forc_hdtsq_scale = forc_scale * hdtsq;
 // Allocate arrays
 int* numneigh = new int [ natoms ];
 int* neigh = new int [ natoms * maxneigh ];
+int* neicell_num = new int [ nneicell ];
+int* neicell_list = new int [ nneicell * max_neicell_list ];
 double* pos = new double [ natoms * 3 ];
 double* posraw = new double [ natoms * 3 ];
 double* vel = new double [ natoms * 3 ];
@@ -239,6 +255,8 @@ delete [] forc;
 delete [] vel;
 delete [] posraw;
 delete [] pos;
+delete [] neicell_list;
+delete [] neicell_num;
 delete [] neigh;
 delete [] numneigh;
 
@@ -452,6 +470,84 @@ void compute_neigh_verlet( const double* const pos, const int natoms,
       }
     }
     numneigh[ i ] = num_nn;
+  }
+
+  return;
+}
+
+
+// Build full neighbour list - Cellular algorithm
+// Note that this implies 3D PBC
+void compute_neigh_cell( const double* const pos, const int natoms, 
+    const double* const boxlen, const double* const boxhalf, 
+    const double cutskinsq, const int maxneigh, 
+    int* numneigh, int* neigh, const int neicell_fac, 
+    const int* const neicell_units, const double* const neicell_len, 
+    const int nneicell, const int max_neicell_list, 
+    int* neicell_num, int* neicell_list ) 
+{
+  const double boxlen0 = boxlen[0];
+  const double boxlen1 = boxlen[1];
+  const double boxlen2 = boxlen[2];
+  const double boxhalf0 = boxhalf[0];
+  const double boxhalf1 = boxhalf[1];
+  const double boxhalf2 = boxhalf[2];
+  const int neicell_units0 = neicell_units[0];
+  const int neicell_units1 = neicell_units[1];
+  const int neicell_units2 = neicell_units[2];
+  const double neicell_len0 = neicell_len[0];
+  const double neicell_len1 = neicell_len[1];
+  const double neicell_len2 = neicell_len[2];
+
+  for ( int ic = 0; ic < nneicell; ic++ ) {
+    neicell_num[ ic ] = 0;
+  }
+
+  for ( int i = 0; i < natoms; i++ ) {
+    const double x = pos[ 3 * i + 0 ];
+    const double y = pos[ 3 * i + 1 ];
+    const double z = pos[ 3 * i + 2 ];
+    const int cell0 = static_cast<int>( floor( x / neicell_len0 ) );
+    const int cell1 = static_cast<int>( floor( y / neicell_len1 ) );
+    const int cell2 = static_cast<int>( floor( z / neicell_len2 ) );
+// WORK IN PROGRESS: cell index
+    const idx = ;
+    neicell_list[ idx * max_neicell_list + neicell_num[i]++ ] = i;
+  }
+
+  for ( int i = 0; i < natoms; i++ ) {
+    numneigh[ i ] = 0;
+  }
+
+  for ( int ic = 0; ic < nneicell; ic++ ) {
+    for ( int ia = 0; ia < neicell_num[ic]; ia++ ) {
+// WORK IN PROGRESS
+      const int i = ;
+      int num_nn = 0;
+// WORK IN PROGRESS: set of cells to be tested for each cell
+      for ( int jc = 0; jc < ; jc++ ) {
+        for ( int ja = 0; ja < neicell_num[jc]; ja++ ) {
+// WORK IN PROGRESS
+          const int j = ;
+          if ( i == j ) continue;
+
+          double dx = pos[ 3 * i + 0 ] - pos[ 3 * j + 0 ];
+          dx -= floor( ( dx + boxhalf0 ) / boxlen0 ) * boxlen0;
+
+          double dy = pos[ 3 * i + 1 ] - pos[ 3 * j + 1 ];
+          dy -= floor( ( dy + boxhalf1 ) / boxlen1 ) * boxlen1;
+
+          double dz = pos[ 3 * i + 2 ] - pos[ 3 * j + 2 ];
+          dz -= floor( ( dz + boxhalf2 ) / boxlen2 ) * boxlen2;
+
+          double rsq = dx * dx + dy * dy + dz * dz;
+          if ( rsq <= cutskinsq ) {
+            neigh[ i * maxneigh + num_nn++ ] = j;
+          }
+        }
+      }
+      numneigh[ i ] = num_nn;
+    }
   }
 
   return;
