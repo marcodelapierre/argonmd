@@ -1,5 +1,5 @@
-CXX = g++
-CXXFLAGS = -std=c++11 -g -Ofast -funroll-loops # -mavx2 -march=native # edit march depending on system
+CXX = g++-11
+CXXFLAGS = -fopenmp -std=c++11 -g -Ofast -funroll-loops # -mavx2 -march=native # edit march depending on system
 LDFLAGS = -g
 
 BIN = argonmd

@@ -2,6 +2,8 @@
 #include <cstring>
 #include <cmath>
 #include <ctime>
+#include <chrono>
+#include <omp.h>
 
 using namespace std;
 
@@ -40,6 +42,30 @@ void print_info( const int* const, const int, const double, const int, const int
     const double, const double, const double, const double* const, const int );
 void print_thermo( const int, const double, const double, const double, const double, const double, const double );
 void dump_pdb( FILE*, const int, const double* const, const double, const char* const, const double* const, const int );
+
+
+// Timer class
+// from https://github.com/bennylp/saxpy-benchmark
+class my_timer
+{
+public:
+    my_timer() { reset(); }
+    void reset() {
+      t0_ = std::chrono::high_resolution_clock::now();
+    }
+    double elapsed(bool reset_timer=false) {
+      std::chrono::high_resolution_clock::time_point t =
+        std::chrono::high_resolution_clock::now();
+      std::chrono::duration<double> time_span =
+        std::chrono::duration_cast<std::chrono::duration<double>>(t - t0_);
+      if (reset_timer)
+        reset();
+      return time_span.count();
+    }
+private:
+    std::chrono::high_resolution_clock::time_point t0_;
+};
+
 
 
 
@@ -177,7 +203,8 @@ if ( ndump > 0 ) {
 
 
 // Time evolution loop
-start = clock();
+//start = clock();
+my_timer timer;
 for (istep = 1; istep <= nsteps; istep++) {
 
 // This code block could become a routine "integrate"; leaving it here for algorithm readability
@@ -208,8 +235,9 @@ for (istep = 1; istep <= nsteps; istep++) {
     compute_temp_ekin( vel, natoms, mass, temp_scale, ekin_scale, temp, ekin );
 
 // Get clock time when required
-    watch = clock() - start;
-    clocktime = ((float)watch)/CLOCKS_PER_SEC;
+//    watch = clock() - start;
+//    clocktime = ((float)watch)/CLOCKS_PER_SEC;
+    clocktime = (double)timer.elapsed();
 
 // Print thermo output when required
     print_thermo( istep, dt*istep, temp, ekin/natoms, epot/natoms, (ekin+epot)/natoms, clocktime );
@@ -381,6 +409,7 @@ void compute_temp_ekin( const double* const vel, const int natoms,
     double& temp, double& ekin ) 
 {
   double tmp = 0.;
+  #pragma omp parallel for reduction(+:tmp)
   for ( int i = 0; i < natoms; i++ ) {
     const double vx = vel[ 3 * i + 0 ];
     const double vy = vel[ 3 * i + 1 ];
@@ -402,6 +431,7 @@ void rescale_temp( double* vel, const int natoms, const double temp_ini,
   const double t_factor = temp_ini / temp;
   const double t_factor_sqrt = sqrt( t_factor );
   
+  #pragma omp parallel for
   for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] *= t_factor_sqrt;
     vel[ 3 * i + 1 ] *= t_factor_sqrt;
@@ -485,6 +515,7 @@ void compute_forc_epot( const double* const pos, const int natoms,
     double fy = 0.;
     double fz = 0.;
   
+    #pragma omp parallel for reduction(+:fx) reduction(+:fy) reduction(+:fz) reduction(+:epot)
     for ( int k = 0; k < numneighs; k++ ) {
       const int j = neighs[k];
 
@@ -527,6 +558,7 @@ void check_pbc( double* pos, const int natoms, const double* const boxlen )
   const double boxlen1 = boxlen[1];
   const double boxlen2 = boxlen[2];
 
+  #pragma omp parallel for
   for ( int i = 0; i < natoms; i++ ) {
     double x = pos[ 3 * i + 0 ];
     if ( x >= boxlen0 ) { x -= boxlen0; pos[ 3 * i + 0 ] = x; }
@@ -555,6 +587,7 @@ void update_pos_pbc( double* pos, double* posraw,
   const double boxlen1 = boxlen[1];
   const double boxlen2 = boxlen[2];
 
+  #pragma omp parallel for
   for ( int i = 0; i < natoms; i++ ) {
     double dx = vel[ 3 * i + 0 ] * dt + forc[ 3 * i + 0 ] * forc_hdtsq_scale * imass;
     double x = pos[ 3 * i + 0 ] + dx;
@@ -583,6 +616,7 @@ void update_vel( double* vel,
     const double* const forcold, const double* const forc, 
     const int natoms, const double forc_hdt_scale, const double imass ) 
 {
+  #pragma omp parallel for
   for ( int i = 0; i < natoms; i++ ) {
     vel[ 3 * i + 0 ] += ( forcold[ 3 * i + 0 ] + forc[ 3 * i + 0 ] ) * forc_hdt_scale * imass;
     vel[ 3 * i + 1 ] += ( forcold[ 3 * i + 1 ] + forc[ 3 * i + 1 ] ) * forc_hdt_scale * imass;
