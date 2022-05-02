@@ -1,6 +1,6 @@
-CXX = g++-11
+CXX = g++
 CXXFLAGS = -fopenmp -std=c++11 -g -Ofast -funroll-loops # -mavx2 -march=native # edit march depending on system
-LDFLAGS = -g
+LDFLAGS = -g -lgomp
 
 BIN = argonmd
 
