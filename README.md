@@ -20,7 +20,7 @@ Written in C++
 * Algorithmic aspects
   * Velocity Verlet integrator
   * Full Verlet neighbour list with regular updates
-    * The cell list implementation also exists, with better performance (linear rather than quadratic scaling)
+    * **TODO**: implement cell lists (linear rather than quadratic scaling)
   * *Metal* physical units as in LAMMPS
   * Starting structure is the equilibrium *fcc* lattice for solid Argon
   * Velocities initialised with random number generator, deterministic seed
